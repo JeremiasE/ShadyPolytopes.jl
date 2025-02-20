@@ -76,19 +76,30 @@ function find_nonnegative_solution(A,w)
 end
 
 """
+    add_one_at_position_k(v,k)
+
+Adds a ``1`` into v at position k. 
+"""
+function add_one_at_position_k(v,k)
+    w = copy(v)
+    insert!(w,k,1)
+    return w
+end
+
+
+"""
     generate_farkas_certificates(cscb[, k, α; io])
 
 Generate rational certificates as in `find_single_farkas_certificate`
 by sampling the surface of the unit-cube. Output to `io`.
 """
-function generate_farkas_certificates(cscb, k=1000, α=84//83; io=stdout)
-    for i in 0:k
-        for j in 0:k
-            for w in [[1,i//k,j//k], [i//k,1,j//k],[i//k,j//k,1]]
-                indices, r = find_single_farkas_certificate(cscb, w, α)
-                println(io,join(w,";"),";",join(indices,";"),";",join(r,";"))
-                flush(io)
-            end
+function generate_farkas_certificates(cscb, k=1000, α=84//83, pos = 1; io=stdout)
+    for i in -k:k
+        for j in -k:k
+            w = add_one_at_position_k([i//k,j//k], pos)
+            indices, r = find_single_farkas_certificate(cscb, w, α)
+            println(io,join(w,";"),";",join(indices,";"),";",join(r,";"))
+            flush(io)
         end
     end
 end
@@ -116,13 +127,15 @@ end
 Verify the output of `generate_farkas_certificate`.
 """
 
-function check_farkas_cerfificate_file(cscb, file, α=84//83)
+function check_farkas_cerfificate_file(cscb, file, α=84//83; silent=true)
     df = CSV.read(file, DataFrame, header=false)
     V = cscb.positive_vertices
     H = cscb.normals
     n = length(V)*length(H)
     for (i,row) in enumerate(eachrow(df))
-        println(i)
+        if !silent
+            println(i)
+        end
         w = parse.(Rational{BigInt},collect(row[1:3]))
         indices = collect(row[4:6])
         yentries = parse.(Rational{BigInt},collect(row[7:9]))
