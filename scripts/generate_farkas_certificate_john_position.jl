@@ -1,10 +1,12 @@
 using ShadyPolytopes
 
 datapath = abspath(joinpath(@__DIR__,"..","data"))
+k = 1400
+α = 84//83
 
 Threads.@threads for i=1:3
-    filename = joinpath(datapath,"farkas-certificates-opt-ico-jp-$(i).csv")
+    filename = joinpath(datapath,"farkas-certificates-opt-ico-jp-$(k)-$(numerator(α))_$(denominator(α))-$(i).csv")
     open(filename,"w") do f
-        generate_farkas_certificates(optimal_icosahedron_john_position, 1400, 84//83, i; io=f)
+        generate_farkas_certificates(optimal_icosahedron_john_position, k, α, i; io=f)
     end
 end
