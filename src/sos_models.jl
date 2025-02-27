@@ -5,8 +5,11 @@ Produces a semialgebraic set which allows to determine
 the shadiness constant of `cscb` via straightforward
 representation of the projection as a matrix.
 
-If `add_beta_bound` is true, we add the (redundant)
+If `beta_bound` is true, we add the (redundant)
 condition that the norm of a projection is at least 1.
+
+If `norm_bound' is true, we add the condition
+that the entries of the projection matrix 
 
 If `feasibility` is true, the produced
 set is used to show that the shadiness
@@ -16,25 +19,37 @@ Otherwise the produced set can be used to calculate a lower bound for
 the shadiness constant.
 """
 function shadiness_via_projection_matrix(cscb;
-                                         add_beta_bound=true, 
+                                         beta_bound=true,
+                                         norm_bound=false,
                                          feasibility=true, bound=101//100)
     @polyvar p[1:3,1:3]
     @polyvar β
+    p = Matrix{typeof(p[1,1]-1)}(p)
+    p[3,3] = 2-p[1,1]-p[2,2]
     vertices = cscb.positive_vertices
     normals = cscb.normals
     
     if feasibility
-        vars = reshape(p,9)
+        vars = reshape(p,9)[1:end-1]
     else
-        vars = [reshape(p,9);β]
+        vars = [reshape(p,9)[1:end-1];β]
     end
 
-    ineq = [(1+β)-w'*p*v for v in vertices for w in normals]
-    eq1 = [tr(p)-2]
-    eq2 = reshape(p*p-p,9)
-    eq = [eq1;eq2]
-
-    if add_beta_bound
+    if feasibility
+        ineq = [bound-w'*p*v for v in vertices for w in normals]
+    else
+        ineq = [(1+β)-w'*p*v for v in vertices for w in normals]
+    end    
+    eq = reshape(p*p-p,9)
+    
+    
+    # Ae_i ∈ ||A||_2 B_2 \in ||A||_2 B_∞
+    # |A|_ij ≤ ||A||_2 ≤ √γ ||A||_cscb = √γ
+    if norm_bound
+        ineq = [ineq; ceil(BigInt,sqrt(determine_squared_spectralnorm_bound(cscb)))]
+    end
+    
+    if beta_bound
         ineq = [β;ineq]
     end
 
