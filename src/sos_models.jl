@@ -192,7 +192,7 @@ Uses `shadiness_via_projection_matrix`, more on the other parameters there.
 """
 function solve_via_projection_matrix(cscb, solver; feasibility=true,  use_beta_bound=true,
                                      use_norm_bound=false, bound=101//100, maxdegree=10)
-    L, K, vars = shadiness_via_projection_matrix(cscb; feasibility = feasibility, bound=bound
+    L, K, vars = shadiness_via_projection_matrix(cscb; feasibility = feasibility, bound=bound,
                                                  use_norm_bound=use_norm_bound, use_beta_bound=use_beta_bound)
     if feasibility
         obj = -1+0*vars[1]
