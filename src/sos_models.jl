@@ -98,9 +98,9 @@ function shadiness_via_vw(cscb;
     vv, ww = v_w_vectors(v_index,w_index, v_entry, v, w)
 
     if feasibility
-        ineq1=[(1+β)*ww'*vv+ww'*x*h'*vv-h'*x*ww'*vv for x in vertices for h in normals]
-    else
         ineq1=[bound*ww'*vv+ww'*x*h'*vv-h'*x*ww'*vv for x in vertices for h in normals]
+    else
+        ineq1=[(1+β)*ww'*vv+ww'*x*h'*vv-h'*x*ww'*vv for x in vertices for h in normals]
     end
 
     ineq2 = [ww'*vv]
@@ -165,10 +165,11 @@ Otherwise determine a lower bound for the shadiness constant.
 
 Uses `shadiness_via_vw`, more on the other parameters there.
 """
-
-
-function solve_via_vw(cscb, solver; feasibility=true, bound=101//100, maxdegree=10)
-    L, K, vars = shadiness_via_vw(cscb; feasibility = feasibility, bound=bound)
+function solve_via_vw(cscb, solver; feasibility=true,
+                      v_index=3, w_index=3, v_entry=1,
+                      bound=101//100, maxdegree=10)
+    L, K, vars = shadiness_via_vw(cscb; feasibility = feasibility, bound=bound,
+                                  v_index=v_index, w_index=w_index, v_entry=v_entry)
     if feasibility
         obj = -1+0*vars[1]
     else
