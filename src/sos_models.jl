@@ -46,7 +46,7 @@ function shadiness_via_projection_matrix(cscb;
     # Ae_i ∈ ||A||_2 B_2 \in ||A||_2 B_∞
     # |A|_ij ≤ ||A||_2 ≤ √γ ||A||_cscb = √γ
     if use_norm_bound
-        ineq = [ineq; ceil(BigInt,sqrt(determine_squared_spectralnorm_bound(cscb)))]
+        ineq = [ineq; [determine_squared_spectralnorm_bound(cscb)-m^2 for m in vars[1:8]]]
     end
     
     if use_beta_bound
@@ -192,7 +192,7 @@ Otherwise determine a lower bound for the shadiness constant.
 Uses `shadiness_via_projection_matrix`, more on the other parameters there.
 """
 function solve_via_projection_matrix(cscb, solver; feasibility=true,  use_beta_bound=true,
-                                     use_norm_bound=false, bound=101//100, maxdegree=10)
+                                     use_norm_bound=true, bound=101//100, maxdegree=10)
     L, K, vars = shadiness_via_projection_matrix(cscb; feasibility = feasibility, bound=bound,
                                                  use_norm_bound=use_norm_bound, use_beta_bound=use_beta_bound)
     if feasibility
