@@ -21,6 +21,7 @@ the shadiness constant.
 function shadiness_via_projection_matrix(cscb;
                                          use_beta_bound=true,
                                          use_norm_bound=true,
+					 use_equations=true,
                                          feasibility=true, bound=101//100)
     @polyvar p[1:3,1:3]
     @polyvar β
@@ -28,7 +29,7 @@ function shadiness_via_projection_matrix(cscb;
     p[3,3] = 2-p[1,1]-p[2,2]
     vertices = cscb.positive_vertices
     normals = cscb.normals
-    
+
     if feasibility
         vars = reshape(p,9)[1:end-1]
     else
@@ -52,8 +53,12 @@ function shadiness_via_projection_matrix(cscb;
     if use_beta_bound
         ineq = [β;ineq]
     end
-
-    L = algebraic_set(eq)
+    if use_equations
+	L = algebraic_set(eq)
+    else
+	ineq = [ineq; eq; [-v for v in eq]]
+	L = FullSpace() 
+    end
     K = basicsemialgebraicset(L,ineq)
     return L, K, vars
 end
@@ -216,7 +221,7 @@ should approximately equal the objective function used in the model
 minus a lower bound.
     """
 function check_putinar_certificate(model,K)
-    return polynomial(sos_decomposition(model[:c],K))
+    return polynomial(sos_decomposition(model[:c],basic_semialgebraic_set(FullSpace(),inequalities(K))))
 end
 
 
