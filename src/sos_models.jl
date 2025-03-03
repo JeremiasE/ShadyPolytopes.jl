@@ -19,14 +19,12 @@ Otherwise the produced set can be used to calculate a lower bound for
 the shadiness constant.
 """
 function shadiness_via_projection_matrix(cscb;
-                                         use_beta_bound=true,
+                                         use_beta_bound=false,
                                          use_norm_bound=true,
 					 use_equations=true,
                                          feasibility=true, bound=101//100)
     @polyvar p[1:3,1:3]
     @polyvar β
-    p = Matrix{typeof(p[1,1]-1)}(p)
-    p[3,3] = 2-p[1,1]-p[2,2]
     vertices = cscb.positive_vertices
     normals = cscb.normals
 
@@ -36,10 +34,16 @@ function shadiness_via_projection_matrix(cscb;
         vars = [reshape(p,9)[1:end-1];β]
     end
 
+    p = Matrix{typeof(p[1,1]-big(1)//2)}(p)
+    p[3,3] = 2-p[1,1]-p[2,2]
+    
     if feasibility
         ineq = [bound-w'*p*v for v in vertices for w in normals]
     else
         ineq = [(1+β)-w'*p*v for v in vertices for w in normals]
+        if use_beta_bound
+            ineq = [β;ineq]
+        end
     end    
     eq = reshape(p*p-p,9)
     
@@ -50,16 +54,13 @@ function shadiness_via_projection_matrix(cscb;
         ineq = [ineq; [determine_squared_spectralnorm_bound(cscb)-m^2 for m in vars[1:8]]]
     end
     
-    if use_beta_bound
-        ineq = [β;ineq]
-    end
     if use_equations
 	L = algebraic_set(eq)
     else
 	ineq = [ineq; eq; [-v for v in eq]]
 	L = FullSpace() 
     end
-    K = basicsemialgebraicset(L,ineq)
+    K = basic_semialgebraic_set(L,ineq)
     return L, K, vars
 end
 
@@ -196,7 +197,7 @@ Otherwise determine a lower bound for the shadiness constant.
 
 Uses `shadiness_via_projection_matrix`, more on the other parameters there.
 """
-function solve_via_projection_matrix(cscb, solver; feasibility=true,  use_beta_bound=true,
+function solve_via_projection_matrix(cscb, solver; feasibility=true,  use_beta_bound=false,
                                      use_norm_bound=true, bound=101//100, maxdegree=10)
     L, K, vars = shadiness_via_projection_matrix(cscb; feasibility = feasibility, bound=bound,
                                                  use_norm_bound=use_norm_bound, use_beta_bound=use_beta_bound)
