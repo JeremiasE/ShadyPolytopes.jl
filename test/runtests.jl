@@ -1,5 +1,6 @@
 using ShadyPolytopes
 using Test
+include("test_sos_models.jl")
 
 @testset "ShadyPolytopes.jl" begin
     @testset "Single Farkas Certificate" begin
@@ -18,5 +19,32 @@ using Test
         generate_farkas_certificates(optimal_icosahedron, 3, α; io=buf)
         @test_nowarn check_farkas_cerfificate_file(optimal_icosahedron, take!(buf), α) 
     end
-    
+    @testset "Simple SOS Models" begin
+        L, K, vars, model = optimize_tiny_sos_model(true, false; bound=174//100)
+        @test is_solved_and_feasible(model)
+
+        L, K, vars, model = optimize_tiny_sos_model(true, false; bound=173//100)
+        @test !is_solved_and_feasible(model)
+
+        L, K, vars, model = optimize_tiny_sos_model(false, false)
+        @test is_solved_and_feasible(model)
+        @test value(model[:τ]) ≤ -sqrt(3)+0.001
+
+        L, K, vars, model = optimize_tiny_sos_model(true, true; bound=-1//100)
+        @test !is_solved_and_feasible(model)
+
+        L, K, vars, model = optimize_tiny_sos_model(false, true)
+        @test is_solved_and_feasible(model)
+        @test value(model[:τ]) ≥ -0.00001       
+    end
+    @testset "Lifting polynomials" begin
+        L, K, dp_vars = shadiness_via_projection_matrix(optimal_icosahedron)
+        eqs = copy(SemialgebraicSets.equalities(L))
+        I = SemialgebraicSets.ideal(L)
+        SemialgebraicSets.compute_gröbner_basis!(I)
+        new_eqs = SemialgebraicSets.equalities(L)
+        A,B = lift_polynomials(eqs, new_eqs, dp_vars)
+        @test A'*eqs == new_eqs
+    end
 end
+
