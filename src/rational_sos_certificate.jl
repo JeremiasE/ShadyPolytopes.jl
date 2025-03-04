@@ -299,12 +299,18 @@ function check_rational_putinar_certificate(rpc)
     else
         println("Right hand side not negativ 🥲")
     end
-
+    println("Computing sos_part")
     sos_part = polynomial(rpc.sos)
+
+    println("Computing offset_part")
     offset_part = sum((rpc.squared_variable_bound-t^2)*polynomial(p)
                       for (t,p) in zip(rpc.vars,rpc.offset_sos))
+
+    println("Computing eqs_part")
     eqs_part = sum(q*p
                    for (q,p) in zip(rpc.eqs, rpc.eqs_polys))
+
+    println("Computing ineqs_part")
     ineqs_part = sum(q*polynomial(p)
                      for (q,p) in zip(rpc.ineqs, rpc.ineqs_sos))
     
