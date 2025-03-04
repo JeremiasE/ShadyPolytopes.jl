@@ -197,13 +197,15 @@ function round_sos_decomposition(model, K, obj, vars, squared_variable_bound,
                                  prec=big(10^2))
     r = rationally_reduce_sos_decomp(model, K, obj, vars; prec=prec, feasibility=true)
     remobj, ineqs_sos, eqs_poly_coeffs, ineqs_part, eqs_part = r
+    println("Finished rounding equality and inequalitiy weights.")
     
     remobj_degree = maximum(map(degree, terms(remobj)))
     approx_gram = gram_matrix(model[:c])
     gram_degree = maximum(map(degree, collect(approx_gram.basis)))
     comb_degree = max(ceil(Int64, remobj_degree / 2), gram_degree)   
     RG, new_monos = round_gram_matrix(approx_gram, remobj, comb_degree,vars; prec=prec)
-
+    println("Finished projecting Gram matrix.")
+    
     # nm' RG nm = remobj = rounded_sos - offset *new_monos'*new_monos
     rounded_sos = gram_to_sos(RG+offset*I, new_monos)
     rounded_sos_part = polynomial(rounded_sos)
@@ -211,6 +213,7 @@ function round_sos_decomposition(model, K, obj, vars, squared_variable_bound,
         println(remobj-rounded_sos_part)
         error("Offset is to small, rounded Gram matrix + offset is not pd.")
     end
+    println("Finished converting Gram matrix to SOS.")
     
     #return new_monos,soss,ineqs,offset,vars
     N, offset_sos = offset_sum_of_monomials(new_monos[2:end],vars; n=squared_variable_bound)
@@ -221,6 +224,7 @@ function round_sos_decomposition(model, K, obj, vars, squared_variable_bound,
     
     #offsetpart = k-newmonos'*newmonos
     offset_part = (sum((squared_variable_bound-t^2)*polynomial(p) for (p,t) in zip(offset_sos,vars)))
+    println("Finished calculating offset weights.")
     left_hand_side = rounded_sos_part + offset_part + ineqs_part + eqs_part
 
     #for i in eachindex(vars)
@@ -308,7 +312,7 @@ function print_certificate(rpc; io=stdout)
     println(io,"(")
     println(io,rpc.sos)
     for i in eachindex(rpc.vars)
-        println(io,"+(",(1-rpc.vars[i]^2),")*(",rpc.offset_sos[i],")")
+        println(io,"+(",(rpc.squared_variable_bound-rpc.vars[i]^2),")*(",rpc.offset_sos[i],")")
     end
     for i in eachindex(rpc.eqs_polys)
         println(io,"+(",rpc.eqs[i],")*(",rpc.eqs_polys[i],")")
@@ -319,40 +323,55 @@ function print_certificate(rpc; io=stdout)
     println(io,")")
 end
 
-function print_certificate_julia(sos, offset_ineq_sos, given_ineq_sos, given_ineq, vars; io=stdout)
+function print_certificate_julia(rpc; io=stdout)
     println(io,"using DynamicPolynomials")
-    println(io,"@polyvar v[1:2] w[1:2]")
+    println(io,"@polyvar p[1:3,1:3]")
     println(io,"const PolyType = Polynomial{DynamicPolynomials.Commutative{DynamicPolynomials.CreationOrder}, Graded{LexOrder}, Rational{BigInt}}")
-    print(io,"sos_result=")
-    show_big(io, sos)
+    
+    print(io,"sos_part=")
+    show_big(io, rpc.sos)
     println(io,"")
     
-    println(io,"offset_ineq = Vector{PolyType}()")
-    println(io,"offset_ineq_sos =  Vector{PolyType}()")   
-    
-    for i in eachindex(vars)
+    println(io,"offset_ineqs = Vector{PolyType}()")
+    println(io,"offset_ineqs_sos =  Vector{PolyType}()")   
+    for i in eachindex(rpc.vars)
         println(io, "println(",i,")")
-        println(io,"push!(offset_ineq,",(1-vars[i]^2),")")
-        print(io,"push!(offset_ineq_sos,")
-        show_big(io,offset_ineq_sos[i])
+        println(io,"push!(offset_ineqs,",(rpc.squared_variable_bound-rpc.vars[i]^2),")")
+        print(io,"push!(offset_ineqs_sos,")
+        show_big(io,rpc.offset_sos[i])
         println(io,")")
     end
-    println(io,"offset_ineq_result=sum(offset_ineq[i]*offset_ineq_sos[i] for i in eachindex(offset_ineq))")
+    println(io,"offset_ineq_result=sum(offset_ineqs[i]*offset_ineqs_sos[i] for i in eachindex(offset_ineqs))")
 
-    println(io,"given_ineq = Vector{PolyType}()")
-    println(io,"given_ineq_sos =  Vector{PolyType}()")
-   
-    for i in eachindex(given_ineq)
+    println(io,"eqs = Vector{PolyType}()")
+    println(io,"eqs_sos =  Vector{PolyType}()")
+    for i in eachindex(rpc.eqs)
         println(io, "println(",i,")")
-        print(io, "push!(given_ineq,")
-        show_big(io, given_ineq[i])
+        print(io, "push!(eqs,")
+        show_big(io, rpc.eqs[i])
         println(io, ")")
-        print(io,"push!(given_ineq_sos,")
-        show_big(io, given_ineq_sos[i])
+        print(io,"push!(eqs_polys,")
+        show_big(io, rpc.eqs_polys[i])
         println(io, ")")
     end
-    println(io,"given_ineq_result=sum(given_ineq[i]*given_ineq_sos[i] for i in eachindex(given_ineq))")
-    println(io,"println(sos_result+offset_ineq_result+given_ineq_result)")
+
+    println(io,"ineqs = Vector{PolyType}()")
+    println(io,"ineqs_sos =  Vector{PolyType}()")
+    for i in eachindex(rpc.ineqs)
+        println(io, "println(",i,")")
+        print(io, "push!(ineqs,")
+        show_big(io, rpc.ineqs[i])
+        println(io, ")")
+        print(io,"push!(ineqs_sos,")
+        show_big(io, rpc.ineqs_sos[i])
+        println(io, ")")
+    end
+
+    println(io,"offset_part=sum(offset_ineqs[i]*offset_sos[i] for i in eachindex(offset_ineqs))")
+    println(io,"eqs_part=sum(eqs[i]*eqs_polys[i] for i in eachindex(eqs))")
+    println(io,"ineqs_part=sum(ineqs[i]*ineqs_sos[i] for i in eachindex(ineqs))")
+    
+    println(io,"println(sos_part+offset_part+eqs_part+ineqs_part)")
 end
 
 
