@@ -188,6 +188,9 @@ end
 
 Turn the calculated approximate weighted SOS decomposition into
 an exact rational weighted SOS decomposition.
+
+Assumes that the first |`vars`| inequalities in K are of the form
+(squared_variable_bound-x_i^2). 
 """
 function round_sos_decomposition(model, K, obj, vars, squared_variable_bound, offset=1//10^4; prec=10^2)
     r = rationally_reduce_sos_decomp(model, K, obj, vars; prec=prec, feasibility=true)
@@ -213,15 +216,24 @@ function round_sos_decomposition(model, K, obj, vars, squared_variable_bound, of
     #offsetpart = k-newmonos'*newmonos
     offset_part = (sum((squared_variable_bound-t^2)*polynomial(p) for (p,t) in zip(offset_sos,vars)))
     left_hand_side = rounded_sos_part + offset_part + ineqs_part + eqs_part
-    println(left_hand_side)
+
+    for i in eachindex(vars)
+        append!(offset_sos[i].pv, ineqs_sos[i].ps)
+        append!(offset_sos[i].wv, ones(Rational{BigInt},length(ineqs_sos[i].ps)))
+    end
+    
+    ineqs = inequalities(K)
+    remaining_ineqs = ineqs[length(vars)+1:end]
+    remaining_ineqs_sos = ineqs_sos[length(vars)+1:end]
+    
     cert = RationalPutniarCertificate(vars,
                                       squared_variable_bound,
                                       equalities(K),
-                                      inequalities(K),
+                                      remaining_ineqs,
                                       rounded_sos,
                                       offset_sos,
                                       eqs_poly_coeffs,
-                                      ineqs_sos,
+                                      remaining_ineqs_sos,
                                       coefficients(left_hand_side)[1])
     return cert
     # newobj = -1 - ineq_part = sos_part + offset_part 
@@ -236,15 +248,24 @@ that shows that a set is empty.
 """
 
 mutable struct RationalPutniarCertificate
-    vars # the variable
-    squared_variable_bound
-    eqs # the equalities
-    ineqs # the inequalities
-    sos # the SOS part
-    offset_sos # weighted sos for the variable bounds
+    # the variables
+    vars 
+    # each variable x must satify x^2 ≤ squared_variable_bound
+    squared_variable_bound 
+    # the equalities defining our set
+    eqs
+    # the inequalities defining our set
+    ineqs
+    # the main rational SOS part
+    sos
+    # rational SOS for the variable bounds
+    offset_sos
+    # polynomial coefficients for the equalities
     eqs_polys
-    ineqs_sos # SOS
-    left_hand_side # a negative rational
+    # the SOS for the inequalities
+    ineqs_sos 
+    # a negative rational number
+    left_hand_side 
 end
 
 """
@@ -261,11 +282,11 @@ function check_rational_putinar_certificate(rpc)
     end
 
     sos_part = polynomial(rpc.sos)
-    offset_part = sum(polynomial(p)*(rpc.squared_variable_bound-t^2)
+    offset_part = sum((rpc.squared_variable_bound-t^2)*polynomial(p)
                       for (t,p) in zip(rpc.vars,rpc.offset_sos))
-    eqs_part = sum(p*q
+    eqs_part = sum(q*p
                    for (q,p) in zip(rpc.eqs, rpc.eqs_polys))
-    ineqs_part = sum(polynomial(p)*q
+    ineqs_part = sum(q*polynomial(p)
                      for (q,p) in zip(rpc.ineqs, rpc.ineqs_sos))
     
     right_hand_side = sos_part + offset_part + eqs_part + ineqs_part
@@ -274,16 +295,20 @@ function check_rational_putinar_certificate(rpc)
     else
         println("Left hand side ≠ right hand side 🥲")
     end
+    return (;sos_part, offset_part, eqs_part,ineqs_part,right_hand_side,rpc.left_hand_side)
 end
 
-function print_certificate(sos,  offset_ineq_sos, given_ineq_sos, given_ineq, vars; io=stdout)
+function print_certificate(rpc; io=stdout)
     println(io,"(")
-    println(io,sos)
-    for i in eachindex(vars)
-        println(io,"+(",(1-vars[i]^2),")*(",offset_ineq_sos[i],")")
+    println(io,rpc.sos)
+    for i in eachindex(rpc.vars)
+        println(io,"+(",(1-rpc.vars[i]^2),")*(",rpc.offset_sos[i],")")
     end
-    for i in eachindex(given_ineq)
-        println(io,"+(",given_ineq[i],")*(",given_ineq_sos[i],")")
+    for i in eachindex(rpc.eqs_polys)
+        println(io,"+(",rpc.eqs[i],")*(",rpc.eqs_polys[i],")")
+    end
+    for i in eachindex(rpc.ineqs)
+        println(io,"+(",rpc.ineqs[i],")*(",rpc.ineqs_sos[i],")")
     end
     println(io,")")
 end
