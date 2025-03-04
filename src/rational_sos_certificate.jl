@@ -192,7 +192,9 @@ an exact rational weighted SOS decomposition.
 Assumes that the first |`vars`| inequalities in K are of the form
 (squared_variable_bound-x_i^2). 
 """
-function round_sos_decomposition(model, K, obj, vars, squared_variable_bound, offset=1//10^4; prec=10^2)
+function round_sos_decomposition(model, K, obj, vars, squared_variable_bound,
+                                 offset=big(1)//10^4;
+                                 prec=big(10^2))
     r = rationally_reduce_sos_decomp(model, K, obj, vars; prec=prec, feasibility=true)
     remobj, ineqs_sos, eqs_poly_coeffs, ineqs_part, eqs_part = r
     
@@ -202,9 +204,13 @@ function round_sos_decomposition(model, K, obj, vars, squared_variable_bound, of
     comb_degree = max(ceil(Int64, remobj_degree / 2), gram_degree)   
     RG, new_monos = round_gram_matrix(approx_gram, remobj, comb_degree,vars; prec=prec)
 
-    # nm' RG nm = remobj
+    # nm' RG nm = remobj = rounded_sos - offset *new_monos'*new_monos
     rounded_sos = gram_to_sos(RG+offset*I, new_monos)
     rounded_sos_part = polynomial(rounded_sos)
+    if remobj ≠ rounded_sos_part- offset *new_monos'*new_monos
+        println(remobj-rounded_sos_part)
+        error("Offset is to small, rounded Gram matrix + offset is not pd.")
+    end
     
     #return new_monos,soss,ineqs,offset,vars
     N, offset_sos = offset_sum_of_monomials(new_monos[2:end],vars; n=squared_variable_bound)
