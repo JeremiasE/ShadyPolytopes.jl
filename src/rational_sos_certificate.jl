@@ -145,15 +145,18 @@ function rationally_reduce_sos_decomp(model, K, obj, vars; feasibility=true, pre
     end
     
     lang_mul = lagrangian_multipliers(model[:c])
-    
+    println("Computing approximate eqs_part")
     ineqs_part = sum(SOSDecomposition(lang_mul[i])*ineqs[i] for i in ineqs_indices)
     sos_part = sos_decomposition(model[:c])
     eqs_part = new_obj-sos_part-ineqs_part
 
+    println("Computing Gröbner basis")
     new_L = algebraic_set(equalities(K))
     I = ideal(new_L)
     SemialgebraicSets.compute_gröbner_basis!(I)
     new_eqs = equalities(new_L)
+
+    println("Computing Lifting")
     eqs_poly_coeffs = div(eqs_part,I.p)
     new_eqs_indices = eachindex(new_eqs)
     
@@ -161,16 +164,18 @@ function rationally_reduce_sos_decomp(model, K, obj, vars; feasibility=true, pre
     A,B = lift_polynomials(eqs, new_eqs, vars)
     # A'*eqs = new_eqs
     # new_eqs' * new_eqs_poly_coeffs = eqs'*A*new_eqs_poly_coeffs
-    
-    rounded_new_eqs_poly_coeffs = [round_poly(p,prec) for p in eqs_poly_coeffs]
-    rounded_eqs_poly_coeffs = [sum(A[k,i]*rounded_new_eqs_poly_coeffs[i]
+
+    println("Rounding equality coefficients")
+    rounded_new_eqs_poly_coeffs = [round_poly(p,prec) for p in eqs_poly_coeffs] # coeffs rel to Gröbner basis
+    rounded_eqs_poly_coeffs = [sum(A[k,i]*rounded_new_eqs_poly_coeffs[i] 
                                    for i in eachindex(rounded_new_eqs_poly_coeffs))
-                               for k in eachindex(eqs)]
+                               for k in eachindex(eqs)] #coeffs rel to original generators
     
     # BUG: This does not work - A*rounded_new_eqs_poly_coeffs                     
 
     rounded_eqs_part = sum(rounded_eqs_poly_coeffs[i]*eqs[i] for i in eqs_indices)
-    
+
+    println("Rounding ineqality coefficients")    
     rounded_ineqs_sos_decomp = [round_sos(SOSDecomposition(lang_mul[i]), prec) for i in ineqs_indices]
     rounded_ineqs_part = sum(rounded_ineqs_sos_decomp[i]*ineqs[i] for i in ineqs_indices)
 
