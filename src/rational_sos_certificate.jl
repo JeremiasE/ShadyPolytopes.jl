@@ -1,5 +1,6 @@
 import MultivariatePolynomials
 import SemialgebraicSets
+import DynamicPolynomials
 
 """
     gram_to_sos(RG, monos)
@@ -385,7 +386,20 @@ function show_big(io::IO, a :: Rational)
     show_big(io, denominator(a))
 end
 
-function show_big(io::IO, a :: MultivariatePolynomials.Polynomial)
+function show_big(io::IO, a :: DynamicPolynomials.Polynomial)
+    monos = monomials(a)
+    coeffs = coefficients(a)
+    n = length(monos)
+    for i in 1:n
+        show_big(io,coeffs[i])
+        print(io,"*",monos[i])
+        if i<n
+            print(io,"+")
+        end
+    end
+end
+
+function show_big(io::IO, a :: DynamicPolynomials.Term)
     monos = monomials(a)
     coeffs = coefficients(a)
     n = length(monos)
