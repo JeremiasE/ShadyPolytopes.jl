@@ -200,7 +200,8 @@ Assumes that the first |`vars`| inequalities in K are of the form
 """
 function round_sos_decomposition(model, K, obj, vars, squared_variable_bound,
                                  offset=big(1)//10^4;
-                                 prec=big(10^2))
+                                 prec=big(10^2),
+                                 combine_offset_ineqs=true)
     r = rationally_reduce_sos_decomp(model, K, obj, vars; prec=prec, feasibility=true)
     remobj, ineqs_sos, eqs_poly_coeffs, ineqs_part, eqs_part = r
 
@@ -236,15 +237,18 @@ function round_sos_decomposition(model, K, obj, vars, squared_variable_bound,
     
     left_hand_side = rounded_sos_part + offset_part + ineqs_part + eqs_part
 
-    for i in eachindex(vars)
-        append!(offset_sos[i].pv, ineqs_sos[i].ps)
-        append!(offset_sos[i].wv, ones(Rational{BigInt},length(ineqs_sos[i].ps)))
-    end
-    
     ineqs = inequalities(K)
-    remaining_ineqs = ineqs[length(vars)+1:end]
-    remaining_ineqs_sos = ineqs_sos[length(vars)+1:end]
-    
+    if combine_offset_ineqs
+        for i in eachindex(vars)
+            append!(offset_sos[i].pv, ineqs_sos[i].ps)
+            append!(offset_sos[i].wv, ones(Rational{BigInt},length(ineqs_sos[i].ps)))
+        end
+        remaining_ineqs = ineqs[length(vars)+1:end]
+        remaining_ineqs_sos = ineqs_sos[length(vars)+1:end]
+    else
+        remaining_ineqs = ineqs
+        remaining_ineqs_sos = ineqs_sos
+    end
     cert = RationalPutniarCertificate(vars,
                                       squared_variable_bound,
                                       equalities(K),
