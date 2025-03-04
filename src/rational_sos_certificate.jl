@@ -217,14 +217,14 @@ function round_sos_decomposition(model, K, obj, vars, squared_variable_bound, of
     offset_part = (sum((squared_variable_bound-t^2)*polynomial(p) for (p,t) in zip(offset_sos,vars)))
     left_hand_side = rounded_sos_part + offset_part + ineqs_part + eqs_part
 
-    for i in eachindex(vars)
-        append!(offset_sos[i].pv, ineqs_sos[i].ps)
-        append!(offset_sos[i].wv, ones(Rational{BigInt},length(ineqs_sos[i].ps)))
-    end
+    #for i in eachindex(vars)
+    #    append!(offset_sos[i].pv, ineqs_sos[i].ps)
+    #    append!(offset_sos[i].wv, ones(Rational{BigInt},length(ineqs_sos[i].ps)))
+    #end
     
     ineqs = inequalities(K)
-    remaining_ineqs = ineqs[length(vars)+1:end]
-    remaining_ineqs_sos = ineqs_sos[length(vars)+1:end]
+    remaining_ineqs = ineqs#[length(vars)+1:end]
+    remaining_ineqs_sos = ineqs_sos#[length(vars)+1:end]
     
     cert = RationalPutniarCertificate(vars,
                                       squared_variable_bound,
