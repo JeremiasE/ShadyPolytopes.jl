@@ -6,7 +6,7 @@ include("analyse_ball.jl")
 include("perturbed_icosahedron.jl")
 include("farkas.jl")
 include("sos_models.jl")
-include("weighted_sos_decomposition.jl")
+include("rational_sos_decomposition.jl")
 include("rational_sos_certificate.jl")
 include("lift_polynomials.jl")
 
@@ -21,6 +21,7 @@ export putinar_model, solve_via_projection_matrix, solve_via_vw
 export shadiness_via_projection_matrix
 export shadiness_via_vw
 export lift_polynomials
-
-
+export max_coeff
+export RationalSOSDecomposition
+    
 end

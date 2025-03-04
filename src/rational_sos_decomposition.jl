@@ -2,7 +2,7 @@ import MultivariatePolynomials as MP
 using DynamicPolynomials
 
 """
-    WeightedSOSDecomposition(pv, wv)
+    RationalSOSDecomposition(pv, wv)
 
 Takes a vector of polynomials `pv` and a vector of (positive) weights `wv`
 to represent the SOS
@@ -10,17 +10,16 @@ to represent the SOS
 
 """
 
-mutable struct WeightedSOSDecomposition{T}
+mutable struct RationalSOSDecomposition{T}
     pv :: Vector{<:MP.AbstractPolynomialLike{T}}
     wv :: Vector{T}
 end
 
-
-function MP.polynomial(d::WeightedSOSDecomposition)
+function MP.polynomial(d::RationalSOSDecomposition)
     return sum(d.wv[i]*d.pv[i]^2 for i in eachindex(d.pv))
 end
 
-function Base.show(io::IO, d::WeightedSOSDecomposition)
+function Base.show(io::IO, d::RationalSOSDecomposition)
     for (i, p, w) in zip(eachindex(d.pv),d.pv,d.wv)
         print(io, w)
         print(io, "*")

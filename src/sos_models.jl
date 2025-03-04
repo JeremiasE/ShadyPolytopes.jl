@@ -21,7 +21,7 @@ the shadiness constant.
 function shadiness_via_projection_matrix(cscb;
                                          use_beta_bound=false,
                                          use_norm_bound=true,
-					 use_equations=true,
+					                     use_equations=true,
                                          feasibility=true, bound=101//100)
     @polyvar p[1:3,1:3]
     @polyvar β
@@ -48,20 +48,21 @@ function shadiness_via_projection_matrix(cscb;
     eq = reshape(p*p-p,9)
     
     
-    # Ae_i ∈ ||A||_2 B_2 \in ||A||_2 B_∞
-    # |A|_ij ≤ ||A||_2 ≤ √γ ||A||_cscb = √γ
+    squared_variable_bound = determine_squared_spectralnorm_bound(cscb)
+    # Pe_i ∈ PB_2 ⊆ ||P||_2 B_2 ⊆ ||P||_2 B_∞
+    # ⟹ |P|_ij ≤ ||P||_2 ≤ √γ ||P||_cscb = √γ
     if use_norm_bound
-        ineq = [ineq; [determine_squared_spectralnorm_bound(cscb)-m^2 for m in vars[1:8]]]
+        ineq = [[squared_variable_bound-m^2 for m in vars[1:8]]; ineq]
     end
     
     if use_equations
-	L = algebraic_set(eq)
+	    L = algebraic_set(eq)
     else
-	ineq = [ineq; eq; [-v for v in eq]]
-	L = FullSpace() 
+	    ineq = [ineq; eq; [-v for v in eq]]
+	    L = FullSpace() 
     end
     K = basic_semialgebraic_set(L,ineq)
-    return L, K, vars
+    return L, K, vars, squared_variable_bound
 end
 
 

@@ -37,6 +37,7 @@ function lift_polynomials(eqs, polys, dp_vars)
     eqs_ideal = singular_ideal(eqs, sg_ring, dp_vars, sg_vars)
     polys_ideal = singular_ideal(polys, sg_ring, dp_vars, sg_vars)
     A, B = Singular.lift(eqs_ideal, polys_ideal)
+    # A'*eqs = polys
     return sg_matrix_to_dp_matrix(Singular.Matrix(A), dp_vars), sg_matrix_to_dp_matrix(Singular.Matrix(B), dp_vars)
 end
 
