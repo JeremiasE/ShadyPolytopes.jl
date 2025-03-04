@@ -20,20 +20,20 @@ include("test_sos_models.jl")
         @test_nowarn check_farkas_cerfificate_file(optimal_icosahedron, take!(buf), α) 
     end
     @testset "Simple SOS Models" begin
-        L, K, vars, model = optimize_tiny_sos_model(true, false; bound=174//100)
+        L, K, vars, obj, model = optimize_tiny_sos_model(true, false; bound=-174//100)
         @test is_solved_and_feasible(model)
 
-        L, K, vars, model = optimize_tiny_sos_model(true, false; bound=173//100)
+        L, K, vars, obj, model = optimize_tiny_sos_model(true, false; bound=-173//100)
         @test !is_solved_and_feasible(model)
 
-        L, K, vars, model = optimize_tiny_sos_model(false, false)
+        L, K, vars, obj, model = optimize_tiny_sos_model(false, false)
         @test is_solved_and_feasible(model)
         @test value(model[:τ]) ≤ -sqrt(3)+0.001
 
-        L, K, vars, model = optimize_tiny_sos_model(true, true; bound=-1//100)
-        @test !is_solved_and_feasible(model)
+        L, K, vars, obj, model = optimize_tiny_sos_model(true, true; bound=-1//100)
+        @test is_solved_and_feasible(model)
 
-        L, K, vars, model = optimize_tiny_sos_model(false, true)
+        L, K, vars, obj, model = optimize_tiny_sos_model(false, true)
         @test is_solved_and_feasible(model)
         @test value(model[:τ]) ≥ -0.00001       
     end
