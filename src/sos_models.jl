@@ -198,10 +198,19 @@ Otherwise determine a lower bound for the shadiness constant.
 
 Uses `shadiness_via_projection_matrix`, more on the other parameters there.
 """
-function solve_via_projection_matrix(cscb, solver; feasibility=true,  use_beta_bound=false,
-                                     use_norm_bound=true, bound=101//100, maxdegree=10)
-    L, K, vars = shadiness_via_projection_matrix(cscb; feasibility = feasibility, bound=bound,
-                                                 use_norm_bound=use_norm_bound, use_beta_bound=use_beta_bound)
+function solve_via_projection_matrix(cscb, solver;
+                                     feasibility=true,
+                                     use_beta_bound=false,
+                                     use_norm_bound=true,
+                                     bound=101//100,
+                                     maxdegree=10)
+    L, K, vars, squared_variable_bound  = shadiness_via_projection_matrix(
+        cscb;
+        feasibility = feasibility,
+        bound = bound,
+        use_norm_bound = use_norm_bound,
+        use_beta_bound = use_beta_bound)
+
     if feasibility
         obj = -1+0*vars[1]
     else
@@ -211,7 +220,7 @@ function solve_via_projection_matrix(cscb, solver; feasibility=true,  use_beta_b
     println(model)
     optimize!(model)
     println(solution_summary(model))
-    return L, K, vars, model
+    return L, K, vars, squared_variable_bound, obj, model
 end
 
 
