@@ -40,7 +40,10 @@ function tiny_sos_set(feasibility = true, equation = false; bound=174//100)
     return L, K, vars
 end
 
-function optimize_small_projection_sos_model(feasibility = true; bound=95//100, maxdegree=3, solver = Clarabel.Optimizer)
+function optimize_small_projection_sos_model(feasibility = true;
+                                             bound=95//100,
+                                             maxdegree=3,
+                                             solver = Clarabel.Optimizer)
     L, K, vars, squared_variable_bound = small_projection_sos_set(feasibility, bound=bound)
     if feasibility
         obj = -1+0*vars[1]

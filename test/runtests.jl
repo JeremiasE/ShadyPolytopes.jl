@@ -1,5 +1,6 @@
 using ShadyPolytopes
 using Test
+
 include("test_sos_models.jl")
 
 @testset "ShadyPolytopes.jl" begin
