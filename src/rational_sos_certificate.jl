@@ -120,8 +120,8 @@ function offset_sum_of_monomials(mono_vector,vars; n=1//1)
     #println(typeof(polynomial.(Rational{BigInt}(1)*collect(monomials(p[1])))))
     #println(typeof(coefficients(p[1])))
      
-    return sumN, [RationalSOSDecomposition(Rational{BigInt}(1)*collect(monomials(monosum)),
-                                     coefficients(monosum))
+    return sumN, [RationalSOSDecomposition(Vector{typeof(vars[1]+big(1)//1)}(monomials(monosum)),
+                                     Vector{Rational{BigInt}}(coefficients(monosum)))
             for monosum in sumpv]
 end
 
