@@ -329,8 +329,7 @@ function print_certificate_julia(rpc; io=stdout)
     println(io,"@polyvar p[1:3,1:3]")
     println(io,"const PolyType = Polynomial{DynamicPolynomials.Commutative{DynamicPolynomials.CreationOrder}, Graded{LexOrder}, Rational{BigInt}}")
        
-    println(io,"println(\"Filling vectors\")")
-
+    println(io,"println(\"Filling offset vectors\")")
     println(io,"offset_ineqs = Vector{PolyType}()")
     println(io,"offset_ineqs_sos =  Vector{PolyType}()")
 
@@ -342,6 +341,8 @@ function print_certificate_julia(rpc; io=stdout)
     end
     println(io,"offset_ineq_result=sum(offset_ineqs[i]*offset_ineqs_sos[i] for i in eachindex(offset_ineqs))")
 
+    
+    println(io,"println(\"Filling equation vectors\")")
     println(io,"eqs = Vector{PolyType}()")
     println(io,"eqs_polys =  Vector{PolyType}()")
     for i in eachindex(rpc.eqs)
@@ -353,6 +354,7 @@ function print_certificate_julia(rpc; io=stdout)
         println(io, ")")
     end
 
+    println(io,"println(\"Filling inequalitiy vectors\")")
     println(io,"ineqs = Vector{PolyType}()")
     println(io,"ineqs_sos =  Vector{PolyType}()")
     for i in eachindex(rpc.ineqs)
@@ -364,18 +366,18 @@ function print_certificate_julia(rpc; io=stdout)
         println(io, ")")
     end
     
-    println(io,"println(\"Calculating sospart\")")
+    println(io,"println(\"Calculating sos_part\")")
     print(io,"sos_part=")
     show_big(io, rpc.sos)
     println(io,"")
     
-    println(io,"println(\"Calculating offsetpart\")")
+    println(io,"println(\"Calculating offset_part\")")
     println(io,"offset_part=sum(offset_ineqs[i]*offset_ineqs_sos[i] for i in eachindex(offset_ineqs))")
 
-    println(io,"println(\"Calculating offsetpart\")")
+    println(io,"println(\"Calculating eqs_part\")")
     println(io,"eqs_part=sum(eqs[i]*eqs_polys[i] for i in eachindex(eqs))")
     
-    println(io,"println(\"Calculating ineqspart\")")
+    println(io,"println(\"Calculating ineqs_part\")")
     println(io,"ineqs_part=sum(ineqs[i]*ineqs_sos[i] for i in eachindex(ineqs))")
     
     println(io,"println(sos_part+offset_part+eqs_part+ineqs_part)")
