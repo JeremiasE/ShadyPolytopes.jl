@@ -328,15 +328,13 @@ function print_certificate_julia(rpc; io=stdout)
     println(io,"using DynamicPolynomials")
     println(io,"@polyvar p[1:3,1:3]")
     println(io,"const PolyType = Polynomial{DynamicPolynomials.Commutative{DynamicPolynomials.CreationOrder}, Graded{LexOrder}, Rational{BigInt}}")
-    
-    print(io,"sos_part=")
-    show_big(io, rpc.sos)
-    println(io,"")
-    
+       
+    println(io,"println(\"Filling vectors\")")
+
     println(io,"offset_ineqs = Vector{PolyType}()")
-    println(io,"offset_ineqs_sos =  Vector{PolyType}()")   
+    println(io,"offset_ineqs_sos =  Vector{PolyType}()")
+
     for i in eachindex(rpc.vars)
-        println(io, "println(",i,")")
         println(io,"push!(offset_ineqs,",(rpc.squared_variable_bound-rpc.vars[i]^2),")")
         print(io,"push!(offset_ineqs_sos,")
         show_big(io,rpc.offset_sos[i])
@@ -345,9 +343,8 @@ function print_certificate_julia(rpc; io=stdout)
     println(io,"offset_ineq_result=sum(offset_ineqs[i]*offset_ineqs_sos[i] for i in eachindex(offset_ineqs))")
 
     println(io,"eqs = Vector{PolyType}()")
-    println(io,"eqs_sos =  Vector{PolyType}()")
+    println(io,"eqs_polys =  Vector{PolyType}()")
     for i in eachindex(rpc.eqs)
-        println(io, "println(",i,")")
         print(io, "push!(eqs,")
         show_big(io, rpc.eqs[i])
         println(io, ")")
@@ -359,7 +356,6 @@ function print_certificate_julia(rpc; io=stdout)
     println(io,"ineqs = Vector{PolyType}()")
     println(io,"ineqs_sos =  Vector{PolyType}()")
     for i in eachindex(rpc.ineqs)
-        println(io, "println(",i,")")
         print(io, "push!(ineqs,")
         show_big(io, rpc.ineqs[i])
         println(io, ")")
@@ -367,9 +363,19 @@ function print_certificate_julia(rpc; io=stdout)
         show_big(io, rpc.ineqs_sos[i])
         println(io, ")")
     end
+    
+    println(io,"println(\"Calculating sospart\")")
+    print(io,"sos_part=")
+    show_big(io, rpc.sos)
+    println(io,"")
+    
+    println(io,"println(\"Calculating offsetpart\")")
+    println(io,"offset_part=sum(offset_ineqs[i]*offset_ineqs_sos[i] for i in eachindex(offset_ineqs))")
 
-    println(io,"offset_part=sum(offset_ineqs[i]*offset_sos[i] for i in eachindex(offset_ineqs))")
+    println(io,"println(\"Calculating offsetpart\")")
     println(io,"eqs_part=sum(eqs[i]*eqs_polys[i] for i in eachindex(eqs))")
+    
+    println(io,"println(\"Calculating ineqspart\")")
     println(io,"ineqs_part=sum(ineqs[i]*ineqs_sos[i] for i in eachindex(ineqs))")
     
     println(io,"println(sos_part+offset_part+eqs_part+ineqs_part)")
