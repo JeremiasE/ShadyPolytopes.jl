@@ -209,17 +209,8 @@ function round_sos_decomposition(model, K, obj, vars, squared_variable_bound,
     comb_degree = max(ceil(Int64, remobj_degree / 2), gram_degree)   
     RG, new_monos = round_gram_matrix(approx_gram, remobj, comb_degree,vars; prec=prec)
     println("r  = ", comb_degree)
-    
-    println("[Converting Gram matrix to SOS.]")
-    # nm' RG nm = remobj = rounded_sos - offset *new_monos'*new_monos
-    rounded_sos = gram_to_sos(RG+offset*I, new_monos)
-    rounded_sos_part = polynomial(rounded_sos)
-    if remobj ≠ rounded_sos_part- offset *new_monos'*new_monos
-        println(remobj-rounded_sos_part)
-        error("Offset is to small, rounded Gram matrix + offset is not pd.")
-    end
 
-    println("Calculating offset weights.")
+    println("[Calculating offset weights.]")
     #return new_monos,soss,ineqs,offset,vars
     Δ, offset_sos = offset_sum_of_monomials(new_monos[2:end],vars; n=squared_variable_bound)
     for i in eachindex(vars)
@@ -227,6 +218,17 @@ function round_sos_decomposition(model, K, obj, vars, squared_variable_bound,
     end
     println("Δ  = ", Δ)
     println("1/(2Δ)", b(1)//(2Δ))
+    
+    println("[Converting Gram matrix to SOS.]")
+    # nm' RG nm = remobj = rounded_sos - offset *new_monos'*new_monos
+    rounded_sos = gram_to_sos(RG+offset*I, new_monos)
+    rounded_sos_part = polynomial(rounded_sos)
+    if remobj ≠ rounded_sos_part- offset *new_monos'*new_monos
+        #println(remobj-rounded_sos_part)
+        error("Offset is to small, rounded Gram matrix + offset is not pd.")
+    end
+
+
 
     println("[Combings offset weights with inequality weights.]")
     #offsetpart = Δ-newmonos'*newmonos

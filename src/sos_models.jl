@@ -205,6 +205,7 @@ function solve_via_projection_matrix(cscb, solver;
                                      use_norm_bound=true,
                                      bound=101//100,
                                      maxdegree=10)
+    println("[Generating model]")
     L, K, vars, squared_variable_bound  = shadiness_via_projection_matrix(
         cscb;
         feasibility = feasibility,
@@ -219,6 +220,7 @@ function solve_via_projection_matrix(cscb, solver;
     end
     model = putinar_model(solver, vars, K, obj; feasibility=feasibility, maxdegree=maxdegree)
     println(model)
+    println("[Solving model]")
     optimize!(model)
     println(solution_summary(model))
     return L, K, vars, squared_variable_bound, obj, model
