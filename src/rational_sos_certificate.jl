@@ -50,9 +50,6 @@ function round_gram_matrix(gram, obj, degree,vars; prec=10^7)
     end
     return projected_G, new_monos
 end
- 
-
-
 
 """
     reduce_one_minus_monomial(t, vars)
@@ -145,18 +142,18 @@ function rationally_reduce_sos_decomp(model, K, obj, vars; feasibility=true, pre
     end
     
     lang_mul = lagrangian_multipliers(model[:c])
-    println("Computing approximate eqs_part")
+    println("[Computing approximate eqs_part]")
     ineqs_part = sum(SOSDecomposition(lang_mul[i])*ineqs[i] for i in ineqs_indices)
     sos_part = sos_decomposition(model[:c])
     eqs_part = new_obj-sos_part-ineqs_part
 
-    println("Computing Gröbner basis")
+    println("[Computing Gröbner basis]")
     new_L = algebraic_set(equalities(K))
     I = ideal(new_L)
     SemialgebraicSets.compute_gröbner_basis!(I)
     new_eqs = equalities(new_L)
 
-    println("Computing Lifting")
+    println("[Computing Lifting]")
     eqs_poly_coeffs = div(eqs_part,I.p)
     new_eqs_indices = eachindex(new_eqs)
     
@@ -165,7 +162,7 @@ function rationally_reduce_sos_decomp(model, K, obj, vars; feasibility=true, pre
     # A'*eqs = new_eqs
     # new_eqs' * new_eqs_poly_coeffs = eqs'*A*new_eqs_poly_coeffs
 
-    println("Rounding equality coefficients")
+    println("[Rounding equality coefficients]")
     rounded_new_eqs_poly_coeffs = [round_poly(p,prec) for p in eqs_poly_coeffs] # coeffs rel to Gröbner basis
     rounded_eqs_poly_coeffs = [sum(A[k,i]*rounded_new_eqs_poly_coeffs[i] 
                                    for i in eachindex(rounded_new_eqs_poly_coeffs))
@@ -175,7 +172,7 @@ function rationally_reduce_sos_decomp(model, K, obj, vars; feasibility=true, pre
 
     rounded_eqs_part = sum(rounded_eqs_poly_coeffs[i]*eqs[i] for i in eqs_indices)
 
-    println("Rounding ineqality coefficients")    
+    println("[Rounding ineqality coefficients]")    
     rounded_ineqs_sos_decomp = [round_sos(SOSDecomposition(lang_mul[i]), prec) for i in ineqs_indices]
     rounded_ineqs_part = sum(rounded_ineqs_sos_decomp[i]*ineqs[i] for i in ineqs_indices)
 
@@ -199,21 +196,21 @@ Assumes that the first |`vars`| inequalities in K are of the form
 (squared_variable_bound-x_i^2). 
 """
 function round_sos_decomposition(model, K, obj, vars, squared_variable_bound,
-                                 offset=big(1)//10^4;
-                                 prec=big(10^2),
+                                 offset = big(1)//10^4;
+                                 prec = big(10^2),
                                  combine_offset_ineqs=true)
     r = rationally_reduce_sos_decomp(model, K, obj, vars; prec=prec, feasibility=true)
     remobj, ineqs_sos, eqs_poly_coeffs, ineqs_part, eqs_part = r
 
-    println("Projecting Gram matrix.")
+    println("[Projecting Gram matrix.]")
     remobj_degree = maximum(map(degree, terms(remobj)))
     approx_gram = gram_matrix(model[:c])
     gram_degree = maximum(map(degree, collect(approx_gram.basis)))
     comb_degree = max(ceil(Int64, remobj_degree / 2), gram_degree)   
     RG, new_monos = round_gram_matrix(approx_gram, remobj, comb_degree,vars; prec=prec)
+    println("r  = ", comb_degree)
     
-    
-    println("Converting Gram matrix to SOS.")
+    println("[Converting Gram matrix to SOS.]")
     # nm' RG nm = remobj = rounded_sos - offset *new_monos'*new_monos
     rounded_sos = gram_to_sos(RG+offset*I, new_monos)
     rounded_sos_part = polynomial(rounded_sos)
@@ -224,15 +221,15 @@ function round_sos_decomposition(model, K, obj, vars, squared_variable_bound,
 
     println("Calculating offset weights.")
     #return new_monos,soss,ineqs,offset,vars
-    N, offset_sos = offset_sum_of_monomials(new_monos[2:end],vars; n=squared_variable_bound)
+    Δ, offset_sos = offset_sum_of_monomials(new_monos[2:end],vars; n=squared_variable_bound)
     for i in eachindex(vars)
         offset_sos[i].wv *= offset
     end
-    #k = length(new_monos)
+    println("Δ  = ", Δ)
+    println("1/(2Δ)", b(1)//(2Δ))
 
-    println("Combings offset weights with inequality weights.")
-    
-    #offsetpart = k-newmonos'*newmonos
+    println("[Combings offset weights with inequality weights.]")
+    #offsetpart = Δ-newmonos'*newmonos
     offset_part = (sum((squared_variable_bound-t^2)*polynomial(p) for (p,t) in zip(offset_sos,vars)))
     
     left_hand_side = rounded_sos_part + offset_part + ineqs_part + eqs_part

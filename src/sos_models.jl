@@ -50,9 +50,10 @@ function shadiness_via_projection_matrix(cscb;
     
     squared_variable_bound = determine_squared_spectralnorm_bound(cscb)
     # Pe_i ∈ PB_2 ⊆ ||P||_2 B_2 ⊆ ||P||_2 B_∞
-    # ⟹ |P|_ij ≤ ||P||_2 ≤ √γ ||P||_cscb = √γ
+    # ⟹ |P|_ij ≤ ||P||_2 ≤ √γ ||P||_cscb ≤ bound √γ
+    # ⟹ |P|_ij^2 ≤ bound^2 γ  
     if use_norm_bound
-        ineq = [[squared_variable_bound-m^2 for m in vars[1:8]]; ineq]
+        ineq = [[bound^2*squared_variable_bound-m^2 for m in vars[1:8]]; ineq]
     end
     
     if use_equations
@@ -62,7 +63,7 @@ function shadiness_via_projection_matrix(cscb;
 	    L = FullSpace() 
     end
     K = basic_semialgebraic_set(L,ineq)
-    return L, K, vars, squared_variable_bound
+    return L, K, vars, bound^2*squared_variable_bound
 end
 
 

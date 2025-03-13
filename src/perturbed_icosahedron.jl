@@ -16,7 +16,7 @@ function perturbed_icosahedron(a,b,c)
         [a,c,1], 
         [b,c,1],     
     ]
-    return CSCB(vertices, calculate_normals(vertices))
+    return CSCB{Rational{BigInt}}(vertices, calculate_normals(vertices))
 end
 
 
