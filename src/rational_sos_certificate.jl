@@ -196,8 +196,8 @@ Assumes that the first |`vars`| inequalities in K are of the form
 (squared_variable_bound-x_i^2). 
 """
 function round_sos_decomposition(model, K, obj, vars, squared_variable_bound,
-                                 offset = big(1)//10^4;
-                                 prec = big(10^2),
+                                 offset = nothing;#big(1)//10^4;
+                                 prec = big(10^3),
                                  combine_offset_ineqs=true)
     r = rationally_reduce_sos_decomp(model, K, obj, vars; prec=prec, feasibility=true)
     remobj, ineqs_sos, eqs_poly_coeffs, ineqs_part, eqs_part = r
@@ -217,8 +217,10 @@ function round_sos_decomposition(model, K, obj, vars, squared_variable_bound,
         offset_sos[i].wv *= offset
     end
     println("Δ  = ", Δ)
-    println("1/(2Δ)", b(1)//(2Δ))
-    
+    println("1/(2Δ)", big(1)//(2Δ))
+    if isnothing(offset)
+        offset = big(1)//(2Δ)
+    end
     println("[Converting Gram matrix to SOS.]")
     # nm' RG nm = remobj = rounded_sos - offset *new_monos'*new_monos
     rounded_sos = gram_to_sos(RG+offset*I, new_monos)
