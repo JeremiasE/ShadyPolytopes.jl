@@ -212,15 +212,16 @@ function round_sos_decomposition(model, K, obj, vars, squared_variable_bound,
 
     println("[Calculating offset weights.]")
     #return new_monos,soss,ineqs,offset,vars
+    if isnothing(offset)
+        offset = big(1)//(2Δ)
+    end
     Δ, offset_sos = offset_sum_of_monomials(new_monos[2:end],vars; n=squared_variable_bound)
     for i in eachindex(vars)
         offset_sos[i].wv *= offset
     end
     println("Δ  = ", Δ)
     println("1/(2Δ)", big(1)//(2Δ))
-    if isnothing(offset)
-        offset = big(1)//(2Δ)
-    end
+    
     println("[Converting Gram matrix to SOS.]")
     # nm' RG nm = remobj = rounded_sos - offset *new_monos'*new_monos
     rounded_sos = gram_to_sos(RG+offset*I, new_monos)
