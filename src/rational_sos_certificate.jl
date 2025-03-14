@@ -1,6 +1,7 @@
 import MultivariatePolynomials
 import SemialgebraicSets
 import DynamicPolynomials
+import LinearAlgebra
 
 """
     gram_to_sos(RG, monos)
@@ -221,7 +222,8 @@ function round_sos_decomposition(model, K, obj, vars, squared_variable_bound,
         offset_sos[i].wv *= offset
     end
     println("Δ  = ", Δ)
-    println("1/(2Δ)", big(1)//(2Δ))
+    println("1/(2Δ) = ", big(1)//(2Δ))
+    println("smallest Gram matrix eigenvalue: ", minimum(map(abs, eigvals(RG))))
     
     println("[Converting Gram matrix to SOS.]")
     # nm' RG nm = remobj = rounded_sos - offset *new_monos'*new_monos
