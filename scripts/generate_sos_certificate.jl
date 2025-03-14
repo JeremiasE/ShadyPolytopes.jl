@@ -13,5 +13,5 @@ datapath = abspath(joinpath(@__DIR__,"..","data"))
 filename = joinpath(datapath,"sos-certificate.jl")
 
 open(filename,"w") do f
-    print_certificate_julia(rpc; io = f)
+    ShadyPolytopes.print_certificate_julia(rpc; io = f)
 end
