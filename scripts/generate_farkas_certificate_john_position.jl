@@ -7,6 +7,6 @@ k = 1400
 Threads.@threads for i=1:3
     filename = joinpath(datapath,"farkas-certificates-opt-ico-jp-$(k)-$(numerator(α))_$(denominator(α))-$(i).csv")
     open(filename,"w") do f
-        generate_farkas_certificates(optimal_icosahedron_john_position, k, α, i; io=f)
+        generate_farkas_certificates(optimal_icosahedron_john_position, k, α, i; io = f)
     end
 end
