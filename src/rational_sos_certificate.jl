@@ -457,7 +457,7 @@ end
 
 Outputs a julia file which calculates 
 """
-function print_certificate_julia(rpc; io=stdout)
+function print_certificate_julia_minimal(rpc; io=stdout)
     println(io, "using DynamicPolynomials")
     println(io, "@polyvar p[1:3,1:3]")
     println(
