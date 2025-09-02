@@ -1,6 +1,6 @@
-import Singular
-import SemialgebraicSets
-import MultivariatePolynomials
+using Singular: Singular
+using SemialgebraicSets: SemialgebraicSets
+using MultivariatePolynomials: MultivariatePolynomials
 
 """
     create_singular_ring(dp_vars)
@@ -38,7 +38,8 @@ function lift_polynomials(eqs, polys, dp_vars)
     polys_ideal = singular_ideal(polys, sg_ring, dp_vars, sg_vars)
     A, B = Singular.lift(eqs_ideal, polys_ideal)
     # A'*eqs = polys
-    return sg_matrix_to_dp_matrix(Singular.Matrix(A), dp_vars), sg_matrix_to_dp_matrix(Singular.Matrix(B), dp_vars)
+    return sg_matrix_to_dp_matrix(Singular.Matrix(A), dp_vars),
+    sg_matrix_to_dp_matrix(Singular.Matrix(B), dp_vars)
 end
 
 """
@@ -51,10 +52,10 @@ are MultivariatePolynomials over the variables `dp_vars`.
 function sg_matrix_to_dp_matrix(M, dp_vars)
     n = Singular.nrows(M)
     m = Singular.ncols(M)
-    A = zeros(typeof(dp_vars[1]+big(1)//2),n,m)
+    A = zeros(typeof(dp_vars[1] + big(1)//2), n, m)
     for i in 1:n
         for j in 1:m
-            A[i,j] = convert_singpoly_to_dynpoly(M[i,j],dp_vars)
+            A[i, j] = convert_singpoly_to_dynpoly(M[i, j], dp_vars)
         end
     end
     return A
@@ -68,14 +69,13 @@ to a MultivariatePolynomials polynomial over the variables `dp_vars`.
 """
 function convert_singpoly_to_dynpoly(singpoly, dp_vars)
     result = 0
-    coeffs = map(x->convert(Rational{BigInt},x),Singular.coefficients(singpoly))
+    coeffs = map(x -> convert(Rational{BigInt}, x), Singular.coefficients(singpoly))
     monoexpos = collect(Singular.exponent_vectors(singpoly))
-    for (coef,expo) in zip(coeffs,monoexpos)
-        result += coef*prod(t^k for (t,k) in zip(dp_vars,expo))
+    for (coef, expo) in zip(coeffs, monoexpos)
+        result += coef * prod(t^k for (t, k) in zip(dp_vars, expo))
     end
     return result
 end
-
 
 """
     convert_dynpoly_to_singpoly(dynpoly, sg_ring, dp_vars, sg_vars)
@@ -89,11 +89,11 @@ function convert_dynpoly_to_singpoly(dynpoly, sg_ring, dp_vars, sg_vars)
     used_sg_vars = [d[v] for v in used_dp_vars]
 
     result = sg_ring(0)
-    
+
     for term in MultivariatePolynomials.terms(dynpoly)
         coef = MultivariatePolynomials.coefficients(term)[1]
         expo = MultivariatePolynomials.exponents(term)
-        result += coef*prod(t^k for (t,k) in zip(used_sg_vars,expo))
+        result += coef * prod(t^k for (t, k) in zip(used_sg_vars, expo))
     end
 
     return result

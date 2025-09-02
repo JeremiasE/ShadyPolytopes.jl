@@ -18,54 +18,55 @@ constant is at least `bound`.
 Otherwise the produced set can be used to calculate a lower bound for
 the shadiness constant.
 """
-function shadiness_via_projection_matrix(cscb;
-                                         use_beta_bound=false,
-                                         use_norm_bound=true,
-					                     use_equations=true,
-                                         feasibility=true, bound=101//100)
-    @polyvar p[1:3,1:3]
+function shadiness_via_projection_matrix(
+    cscb;
+    use_beta_bound=false,
+    use_norm_bound=true,
+    use_equations=true,
+    feasibility=true,
+    bound=101//100,
+)
+    @polyvar p[1:3, 1:3]
     @polyvar β
     vertices = cscb.positive_vertices
     normals = cscb.normals
 
     if feasibility
-        vars = reshape(p,9)[1:end-1]
+        vars = reshape(p, 9)[1:(end - 1)]
     else
-        vars = [reshape(p,9)[1:end-1];β]
+        vars = [reshape(p, 9)[1:(end - 1)]; β]
     end
 
-    p = Matrix{typeof(p[1,1]-big(1)//2)}(p)
-    p[3,3] = 2-p[1,1]-p[2,2]
-    
+    p = Matrix{typeof(p[1, 1] - big(1)//2)}(p)
+    p[3, 3] = 2 - p[1, 1] - p[2, 2]
+
     if feasibility
-        ineq = [bound-w'*p*v for v in vertices for w in normals]
+        ineq = [bound - w' * p * v for v in vertices for w in normals]
     else
-        ineq = [(1+β)-w'*p*v for v in vertices for w in normals]
+        ineq = [(1 + β) - w' * p * v for v in vertices for w in normals]
         if use_beta_bound
-            ineq = [β;ineq]
+            ineq = [β; ineq]
         end
-    end    
-    eq = reshape(p*p-p,9)
-    
-    
+    end
+    eq = reshape(p * p - p, 9)
+
     squared_variable_bound = determine_squared_spectralnorm_bound(cscb)
     # Pe_i ∈ PB_2 ⊆ ||P||_2 B_2 ⊆ ||P||_2 B_∞
     # ⟹ |P|_ij ≤ ||P||_2 ≤ √γ ||P||_cscb ≤ bound √γ
     # ⟹ |P|_ij^2 ≤ bound^2 γ  
     if use_norm_bound
-        ineq = [[bound^2*squared_variable_bound-m^2 for m in vars[1:8]]; ineq]
+        ineq = [[bound^2 * squared_variable_bound - m^2 for m in vars[1:8]]; ineq]
     end
-    
-    if use_equations
-	    L = algebraic_set(eq)
-    else
-	    ineq = [ineq; eq; [-v for v in eq]]
-	    L = FullSpace() 
-    end
-    K = basic_semialgebraic_set(L,ineq)
-    return L, K, vars, bound^2*squared_variable_bound
-end
 
+    if use_equations
+        L = algebraic_set(eq)
+    else
+        ineq = [ineq; eq; [-v for v in eq]]
+        L = FullSpace()
+    end
+    K = basic_semialgebraic_set(L, ineq)
+    return L, K, vars, bound^2 * squared_variable_bound
+end
 
 """
     shadiness_via_vw(cscb;feasibility, v_index, w_index, v_entry=1,
@@ -87,10 +88,9 @@ constant is at least `bound`.
 Otherwise the produced set can be used to calculate a lower bound for
 the shadiness constant.
 """
-function shadiness_via_vw(cscb;
-                          feasibility = true,
-                          v_index=3, w_index=3, v_entry=1,
-                          bound=101//100, quadratic=true)
+function shadiness_via_vw(
+    cscb; feasibility=true, v_index=3, w_index=3, v_entry=1, bound=101//100, quadratic=true
+)
     @polyvar w[1:2]
     @polyvar v[1:2]
     @polyvar β
@@ -98,34 +98,39 @@ function shadiness_via_vw(cscb;
     normals = cscb.normals
 
     if feasibility
-        vars = [w;v]
+        vars = [w; v]
     else
-        vars = [w;v;β]
+        vars = [w; v; β]
     end
 
-    vv, ww = v_w_vectors(v_index,w_index, v_entry, v, w)
+    vv, ww = v_w_vectors(v_index, w_index, v_entry, v, w)
 
     if feasibility
-        ineq1=[bound*ww'*vv+ww'*x*h'*vv-h'*x*ww'*vv for x in vertices for h in normals]
+        ineq1 = [
+            bound * ww' * vv + ww' * x * h' * vv - h' * x * ww' * vv for x in vertices for
+            h in normals
+        ]
     else
-        ineq1=[(1+β)*ww'*vv+ww'*x*h'*vv-h'*x*ww'*vv for x in vertices for h in normals]
+        ineq1 = [
+            (1 + β) * ww' * vv + ww' * x * h' * vv - h' * x * ww' * vv for x in vertices for
+            h in normals
+        ]
     end
 
-    ineq2 = [ww'*vv]
+    ineq2 = [ww' * vv]
 
     if quadratic
-        ineq3 = [1-k^2 for k in [v;w]]
+        ineq3 = [1 - k^2 for k in [v; w]]
     else
-        ineq3 = [[1-k for k in [v;w]]; [k+1 for k in [v;w]]]
+        ineq3 = [[1 - k for k in [v; w]]; [k + 1 for k in [v; w]]]
     end
 
     ineq = [β; ineq3; ineq2; ineq1]
 
     L = FullSpace()
-    K = basic_semialgebraic_set(L,ineq)
+    K = basic_semialgebraic_set(L, ineq)
     return L, K, vars
 end
-
 
 """
     v_w_vectors(v_index, w_index, v_entry, v_variables, w_variables)
@@ -134,11 +139,11 @@ Inserts `v_entry` into the vector `v_variables` at position `v_index`
 and inserts 1 into the vector `w_variables` at position `w_index`.
 """
 function v_w_vectors(v_index, w_index, v_entry, v_variables, w_variables)
-    v = Vector{typeof(1+v_variables[1])}([v_variables...])
-    w = Vector{typeof(1+w_variables[1])}([w_variables...])
-    insert!(v,v_index,v_entry)
-    insert!(w,w_index,1)
-    return v,w
+    v = Vector{typeof(1 + v_variables[1])}([v_variables...])
+    w = Vector{typeof(1 + w_variables[1])}([w_variables...])
+    insert!(v, v_index, v_entry)
+    insert!(w, w_index, 1)
+    return v, w
 end
 
 """
@@ -152,7 +157,7 @@ Putinar's Positivstellensatz using polynomials and
 a SOS decomposition using polynomials of maximal degree `maxdegree`.
 """
 
-function putinar_model(solver,vars,K,obj;feasibility=true, maxdegree=4)
+function putinar_model(solver, vars, K, obj; feasibility=true, maxdegree=4)
     model = SOSModel(solver)
     if feasibility
         @constraint(model, c, obj >= 0, domain = K, maxdegree = maxdegree)
@@ -173,17 +178,32 @@ Otherwise determine a lower bound for the shadiness constant.
 
 Uses `shadiness_via_vw`, more on the other parameters there.
 """
-function solve_via_vw(cscb, solver; feasibility=true,
-                      v_index=3, w_index=3, v_entry=1,
-                      bound=101//100, maxdegree=10)
-    L, K, vars = shadiness_via_vw(cscb; feasibility = feasibility, bound=bound,
-                                  v_index=v_index, w_index=w_index, v_entry=v_entry)
+function solve_via_vw(
+    cscb,
+    solver;
+    feasibility=true,
+    v_index=3,
+    w_index=3,
+    v_entry=1,
+    bound=101//100,
+    maxdegree=10,
+)
+    L, K, vars = shadiness_via_vw(
+        cscb;
+        feasibility=feasibility,
+        bound=bound,
+        v_index=v_index,
+        w_index=w_index,
+        v_entry=v_entry,
+    )
     if feasibility
-        obj = -1+0*vars[1]
+        obj = -1 + 0 * vars[1]
     else
         obj = vars[end]
     end
-    model = putinar_model(solver, vars, K, obj; feasibility=feasibility, maxdegree=maxdegree)
+    model = putinar_model(
+        solver, vars, K, obj; feasibility=feasibility, maxdegree=maxdegree
+    )
     println(model)
     optimize!(model)
     println(solution_summary(model))
@@ -199,33 +219,38 @@ Otherwise determine a lower bound for the shadiness constant.
 
 Uses `shadiness_via_projection_matrix`, more on the other parameters there.
 """
-function solve_via_projection_matrix(cscb, solver;
-                                     feasibility=true,
-                                     use_beta_bound=false,
-                                     use_norm_bound=true,
-                                     bound=101//100,
-                                     maxdegree=10)
+function solve_via_projection_matrix(
+    cscb,
+    solver;
+    feasibility=true,
+    use_beta_bound=false,
+    use_norm_bound=true,
+    bound=101//100,
+    maxdegree=10,
+)
     println("[Generating model]")
-    L, K, vars, squared_variable_bound  = shadiness_via_projection_matrix(
+    L, K, vars, squared_variable_bound = shadiness_via_projection_matrix(
         cscb;
-        feasibility = feasibility,
-        bound = bound,
-        use_norm_bound = use_norm_bound,
-        use_beta_bound = use_beta_bound)
+        feasibility=feasibility,
+        bound=bound,
+        use_norm_bound=use_norm_bound,
+        use_beta_bound=use_beta_bound,
+    )
 
     if feasibility
-        obj = -1+0*vars[1]
+        obj = -1 + 0 * vars[1]
     else
         obj = vars[end]
     end
-    model = putinar_model(solver, vars, K, obj; feasibility=feasibility, maxdegree=maxdegree)
+    model = putinar_model(
+        solver, vars, K, obj; feasibility=feasibility, maxdegree=maxdegree
+    )
     println(model)
     println("[Solving model]")
     optimize!(model)
     println(solution_summary(model))
     return L, K, vars, squared_variable_bound, obj, model
 end
-
 
 """
     check_putinar_certificate(model,K)
@@ -234,12 +259,8 @@ Calculates the weighted sos decomposition calculated in `model`, this
 should approximately equal the objective function used in the model
 minus a lower bound.
     """
-function check_putinar_certificate(model,K)
-    return polynomial(sos_decomposition(model[:c],basic_semialgebraic_set(FullSpace(),inequalities(K))))
+function check_putinar_certificate(model, K)
+    return polynomial(
+        sos_decomposition(model[:c], basic_semialgebraic_set(FullSpace(), inequalities(K)))
+    )
 end
-
-
-
-
-
-

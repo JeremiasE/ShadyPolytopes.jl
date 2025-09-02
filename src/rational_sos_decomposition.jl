@@ -11,16 +11,16 @@ to represent the SOS
 """
 
 mutable struct RationalSOSDecomposition{T}
-    pv :: Vector{<:MP.AbstractPolynomialLike{T}}
-    wv :: Vector{T}
+    pv::Vector{<:MP.AbstractPolynomialLike{T}}
+    wv::Vector{T}
 end
 
 function MP.polynomial(d::RationalSOSDecomposition)
-    return sum(d.wv[i]*d.pv[i]^2 for i in eachindex(d.pv))
+    return sum(d.wv[i] * d.pv[i]^2 for i in eachindex(d.pv))
 end
 
 function Base.show(io::IO, d::RationalSOSDecomposition)
-    for (i, p, w) in zip(eachindex(d.pv),d.pv,d.wv)
+    for (i, p, w) in zip(eachindex(d.pv), d.pv, d.wv)
         print(io, w)
         print(io, "*")
         print(io, "(")

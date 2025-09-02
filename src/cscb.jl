@@ -11,8 +11,8 @@ Normals are normalized such that
 the body is given by ``\\{x | h^T x \\leq 1, h \\in normals\\}``.
 """
 struct CSCB{T}
-    positive_vertices :: Vector{Vector{T}}
-    normals ::  Vector{Vector{T}}
+    positive_vertices::Vector{Vector{T}}
+    normals::Vector{Vector{T}}
 end
 
 """
@@ -24,12 +24,12 @@ the normals ``w`` such that ``w^T v <= 1``.
 If `symmetric` is true, it is enough to
 include the vertices in one halfspace.
 """
-function calculate_normals(vertices; symmetric = true)
+function calculate_normals(vertices; symmetric=true)
     if symmetric
-        vertices = [vertices; map(x->-x, vertices)]
+        vertices = [vertices; map(x -> -x, vertices)]
     end
     P = polyhedron(vrep(vertices), CDDLib.Library(:exact))
-    return [h.a/h.β for h in halfspaces(hrep(P))]
+    return [h.a / h.β for h in halfspaces(hrep(P))]
 end
 
 """
@@ -38,6 +38,6 @@ end
 Calculate all vertices of the centrally symmetric
 convex body cscb.
 """
-function all_vertices(cscb :: CSCB)
-    return [cscb.positive_vertices; map(x->-x,cscb.positive_vertices)]
+function all_vertices(cscb::CSCB)
+    return [cscb.positive_vertices; map(x -> -x, cscb.positive_vertices)]
 end
