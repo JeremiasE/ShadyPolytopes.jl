@@ -392,7 +392,7 @@ function print_certificate_julia(rpc; io=stdout)
     println(io, "@polyvar p[1:3,1:3]")
     println(
         io,
-        "const PolyType = typeof(p[1,1]+BigInt(1)//2)"),
+        "const PolyType = typeof(p[1,1]+BigInt(1)//2)"
     )
 
     println(io, "println(\"[Filling offset vectors]\")")
@@ -462,7 +462,7 @@ function print_certificate_julia(rpc; io=stdout)
     println(io, "@polyvar p[1:3,1:3]")
     println(
         io,
-        "const PolyType = typeof(p[1,1]+BigInt(1)//2)"),
+        "const PolyType = typeof(p[1,1]+BigInt(1)//2)"
     )
 
     println(io, "println(\"[Filling offset vectors]\")")
