@@ -1,6 +1,9 @@
 using ShadyPolytopes
 using CodecZlib
 
+println("Using ", Threads.nthreads(), " threads")
+
+
 @time begin
     datapath = abspath(joinpath(@__DIR__, "..", "data"))
     k = 1400
