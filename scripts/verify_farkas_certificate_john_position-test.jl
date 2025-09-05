@@ -5,9 +5,8 @@ println("Using ", Threads.nthreads(), " threads")
 
 @time begin
     datapath = abspath(joinpath(@__DIR__, "..", "data"))
-    k = 1400
+    k = 11
     α = 84//83
-    
     @Threads.threads for i in 1:3
         filename = joinpath(
             datapath,

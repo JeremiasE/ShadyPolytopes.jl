@@ -130,18 +130,18 @@ Verify the output of `generate_farkas_certificate`.
 """
 
 function check_farkas_certificate_file(cscb, file, α=84//83; silent=true)
-    df = CSV.read(file, DataFrame; header=false)
+    csv = CSV.File(file; header=false)
     V = cscb.positive_vertices
     H = cscb.normals
     n = length(V) * length(H)
-    prog = silent ? nothing : Progress(nrow(df))
-    for (i, row) in enumerate(eachrow(df))
+    prog = silent ? nothing : Progress(length(csv))
+    for row in csv
         if !silent
             next!(prog)
         end
-        w = parse.(Rational{BigInt}, collect(row[1:3]))
-        indices = collect(row[4:6])
-        yentries = parse.(Rational{BigInt}, collect(row[7:9]))
+        w = parse.(Rational{BigInt}, [row[i] for i in 1:3])
+        indices = [row[i] for i in 4:6]
+        yentries = parse.(Rational{BigInt}, [row[i] for i in 7:9])
         y = zeros(Rational{BigInt}, n)
         y[indices] = yentries
         check_single_farkas_certificate(cscb, w, y, α)
