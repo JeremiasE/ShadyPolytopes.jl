@@ -22,7 +22,7 @@ include("test_sos_models.jl")
         α = 84//83
         buf = IOBuffer()
         generate_farkas_certificates(optimal_icosahedron, 3, α; io=buf)
-        @test_nowarn check_farkas_cerfificate_file(optimal_icosahedron, take!(buf), α)
+        @test_nowarn check_farkas_certificate_file(optimal_icosahedron, take!(buf), α)
     end
     @testset "Simple SOS Models" begin
         L, K, vars, obj, model = optimize_tiny_sos_model(true, false; bound=-174//100)
