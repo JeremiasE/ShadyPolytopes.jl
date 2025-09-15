@@ -24,7 +24,7 @@ which represents `obj` as a rational SOS decomposition using monomials
 in the variables `vars` up to degree `degree`. The rounding to
 rational values is done up to precision `prec`.
 """
-function round_and_project_gram_matrix(gram, obj, degree, vars; prec=10^7)
+function round_and_project_gram_matrix(gram, obj, degree, vars; prec = 10^7)
     G = value_matrix(gram)
     RG = fast_round.(G, prec)
     n = size(RG, 1)
@@ -105,7 +105,7 @@ and the result is N and p_1,...,p_l,
 then ``N - m_1^2+m_2^2+...+m_k^2`` as ``p_1 (factor-x_1^2)+...+ p_l (factor-x_l^2)``.
 
 """
-function offset_sum_of_monomials(mono_vector, vars; n=1//1)
+function offset_sum_of_monomials(mono_vector, vars; n = 1//1)
     sumN = 0
     sumpv = zeros(typeof(vars[1] + big(1)//1), length(vars))
 
@@ -119,12 +119,10 @@ function offset_sum_of_monomials(mono_vector, vars; n=1//1)
     #println(typeof(coefficients(p[1])))
 
     return sumN,
-    [
-        RationalSOSDecomposition(
-            Vector{typeof(vars[1] + big(1)//1)}(monomials(monosum)),
-            Vector{Rational{BigInt}}(coefficients(monosum)),
-        ) for monosum in sumpv
-    ]
+    [RationalSOSDecomposition(
+         Vector{typeof(vars[1] + big(1)//1)}(monomials(monosum)),
+         Vector{Rational{BigInt}}(coefficients(monosum))
+     ) for monosum in sumpv]
 end
 
 """
@@ -133,7 +131,7 @@ end
 Calculate rational approxmiations of all parts of the computed
 weighted SOS decomposition of `obj` besides the main SOS part. 
 """
-function rationally_reduce_sos_decomp(model, K, obj, vars; feasibility=true, prec=10^7)
+function rationally_reduce_sos_decomp(model, K, obj, vars; feasibility = true, prec = 10^7)
     ineqs = SemialgebraicSets.inequalities(K)
     ineqs_indices = eachindex(ineqs)
     eqs = SemialgebraicSets.equalities(K)
@@ -168,23 +166,20 @@ function rationally_reduce_sos_decomp(model, K, obj, vars; feasibility=true, pre
     # new_eqs' * new_eqs_poly_coeffs = eqs'*A*new_eqs_poly_coeffs
 
     println("[Rounding equality coefficients]")
-    rounded_new_eqs_poly_coeffs = [
-        round_poly(p, prec) for p in eqs_poly_coeffs] # coeffs rel to Gröbner basis
-    rounded_eqs_poly_coeffs = [
-        sum(
-            A[k, i] * rounded_new_eqs_poly_coeffs[i] for
-            i in eachindex(rounded_new_eqs_poly_coeffs)
-        ) for k in eachindex(eqs)
-    ] #coeffs rel to original generators
+    rounded_new_eqs_poly_coeffs = [round_poly(p, prec) for p in eqs_poly_coeffs] # coeffs rel to Gröbner basis
+    rounded_eqs_poly_coeffs = [sum(
+                                   A[k, i] * rounded_new_eqs_poly_coeffs[i]
+                               for
+                               i in eachindex(rounded_new_eqs_poly_coeffs)
+                               ) for k in eachindex(eqs)] #coeffs rel to original generators
 
     # BUG: This does not work - A*rounded_new_eqs_poly_coeffs                     
 
     rounded_eqs_part = sum(rounded_eqs_poly_coeffs[i] * eqs[i] for i in eqs_indices)
 
     println("[Rounding ineqality coefficients]")
-    rounded_ineqs_sos_decomp = [
-        round_sos(SOSDecomposition(lang_mul[i]), prec) for i in ineqs_indices
-    ]
+    rounded_ineqs_sos_decomp = [round_sos(SOSDecomposition(lang_mul[i]), prec)
+                                for i in ineqs_indices]
     rounded_ineqs_part = sum(rounded_ineqs_sos_decomp[i] * ineqs[i] for i in ineqs_indices)
 
     return (
@@ -194,7 +189,7 @@ function rationally_reduce_sos_decomp(model, K, obj, vars; feasibility=true, pre
         rounded_ineqs_part,
         rounded_eqs_part,
         eqs_part,
-        new_L,
+        new_L
     )
 end
 
@@ -207,25 +202,24 @@ that shows that a set is empty.
 
 mutable struct RationalPutniarCertificate
     # the variables
-    vars
+    vars::Any
     # each variable x must satify x^2 ≤ squared_variable_bound
-    squared_variable_bound
+    squared_variable_bound::Any
     # the equalities defining our set
-    eqs
+    eqs::Any
     # the inequalities defining our set
-    ineqs
+    ineqs::Any
     # the main rational SOS part
-    sos
+    sos::Any
     # rational SOS for the variable bounds
-    offset_sos
+    offset_sos::Any
     # polynomial coefficients for the equalities
-    eqs_polys
+    eqs_polys::Any
     # the SOS for the inequalities
-    ineqs_sos
+    ineqs_sos::Any
     # a negative rational number
-    left_hand_side
+    left_hand_side::Any
 end
-
 
 """
     round_sos_decomposition(model, K, obj, vars, squared_variable_bound, offset; prec)
@@ -237,16 +231,16 @@ Assumes that the first |`vars`| inequalities in K are of the form
 (squared_variable_bound-x_i^2). 
 """
 function round_sos_decomposition(
-    model,
-    K,
-    obj,
-    vars,
-    squared_variable_bound,
-    offset=nothing;
-    prec=big(10^3),
-    combine_offset_ineqs=true,
+        model,
+        K,
+        obj,
+        vars,
+        squared_variable_bound,
+        offset = nothing;
+        prec = big(10^3),
+        combine_offset_ineqs = true
 )
-    r = rationally_reduce_sos_decomp(model, K, obj, vars; prec=prec, feasibility=true)
+    r = rationally_reduce_sos_decomp(model, K, obj, vars; prec = prec, feasibility = true)
     remobj, ineqs_sos, eqs_poly_coeffs, ineqs_part, eqs_part = r
 
     println("[Projecting Gram matrix.]")
@@ -254,15 +248,18 @@ function round_sos_decomposition(
     approx_gram = gram_matrix(model[:c])
     gram_degree = maximum(map(degree, collect(approx_gram.basis)))
     comb_degree = max(ceil(Int64, remobj_degree / 2), gram_degree)
-    RG, new_monos = round_and_project_gram_matrix(approx_gram, remobj, comb_degree, vars; prec=prec)
+    RG,
+    new_monos = round_and_project_gram_matrix(
+        approx_gram, remobj, comb_degree, vars; prec = prec)
     println("r  = ", comb_degree)
 
     println("[Calculating offset weights.]")
 
-    Δ, offset_sos = offset_sum_of_monomials(
-        new_monos[2:end], vars; n=squared_variable_bound
+    Δ,
+    offset_sos = offset_sum_of_monomials(
+        new_monos[2:end], vars; n = squared_variable_bound
     )
-    
+
     if isnothing(offset)
         offset = big(1)//(2Δ)
     end
@@ -312,11 +309,11 @@ function round_sos_decomposition(
         offset_sos,
         eqs_poly_coeffs,
         remaining_ineqs_sos,
-        coefficients(left_hand_side)[1],
+        coefficients(left_hand_side)[1]
     )
 
     check_rational_putinar_certificate(cert)
-    
+
     return cert
 end
 
@@ -337,8 +334,9 @@ function check_rational_putinar_certificate(rpc)
 
     println("Computing offset part")
     offset_part = sum(
-        (rpc.squared_variable_bound - t^2) * polynomial(p) for
-        (t, p) in zip(rpc.vars, rpc.offset_sos)
+        (rpc.squared_variable_bound - t^2) * polynomial(p)
+    for
+    (t, p) in zip(rpc.vars, rpc.offset_sos)
     )
 
     println("Computing equations part")
@@ -358,13 +356,12 @@ function check_rational_putinar_certificate(rpc)
     )
 end
 
-
 """
     print_certificate(rpc; io)
 
 Print the certificate in a human readable form.
 """
-function print_certificate(rpc; io=stdout)
+function print_certificate(rpc; io = stdout)
     println(io, "(")
     println(io, rpc.sos)
     for i in eachindex(rpc.vars)
@@ -374,7 +371,7 @@ function print_certificate(rpc; io=stdout)
             (rpc.squared_variable_bound - rpc.vars[i]^2),
             ")*(",
             rpc.offset_sos[i],
-            ")",
+            ")"
         )
     end
     for i in eachindex(rpc.eqs_polys)
@@ -391,7 +388,7 @@ end
 
 Outputs a julia file which calculates 
 """
-function print_certificate_julia(rpc; io=stdout)
+function print_certificate_julia(rpc; io = stdout)
     println(io, "using DynamicPolynomials")
     println(io, "@polyvar p[1:3,1:3]")
     println(
@@ -441,7 +438,6 @@ function print_certificate_julia(rpc; io=stdout)
     show_big(io, rpc.sos)
     println(io, "")
 end
-
 
 function show_big(io::IO, a::Integer)
     return print(io, "big(", a, ")")

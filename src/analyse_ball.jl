@@ -16,7 +16,7 @@ to the shadiness constant of cscp.
 If `silent` is true, no information
 is printed during the optimization.
 """
-function find_shadiness_constant_numerically(cscp, silent=true)
+function find_shadiness_constant_numerically(cscp, silent = true)
     model = Model(SCIP.Optimizer)
     if silent
         set_silent(model)
@@ -61,7 +61,7 @@ of the unit ball of the corresponding operator norm.
 If `rational` is true, exact rational arithmetic is used,
 otherwise the computation is done in floating point.
 """
-function determine_matrix_ball_vertices(cscp::CSCP; rational=true)
+function determine_matrix_ball_vertices(cscp::CSCP; rational = true)
     vertices = all_vertices(cscp)
     normals = cscp.normals
     d = length(vertices[1])
@@ -71,13 +71,13 @@ function determine_matrix_ball_vertices(cscp::CSCP; rational=true)
 
     P = (
         if rational
-            polyhedron(hrep(half_spaces), CDDLib.Library(:exact))
-        else
-            polyhedron(hrep(half_spaces), CDDLib.Library(:float))
-        end
+        polyhedron(hrep(half_spaces), CDDLib.Library(:exact))
+    else
+        polyhedron(hrep(half_spaces), CDDLib.Library(:float))
+    end
     )
 
-    return [reshape(A,3,3) for A in points(P)]
+    return [reshape(A, 3, 3) for A in points(P)]
 end
 
 """
@@ -119,11 +119,13 @@ this functions calculates a rational approximation (up to precision `prec`) of a
 such that ``QM`` is approximately in John position, i.e.
 the maximal volume inscribed ellipsoid is the Euclidean unit ball.
 """
-function approximate_john_position(cscp; prec=10^1)
+function approximate_john_position(cscp; prec = 10^1)
     P = polyhedron(vrep(all_vertices(cscp)), CDDLib.Library(:float))
     lazypolytope = LazySets.HPolytope(P)
     john_ellipsoid = LazySets.underapproximate(
-        lazypolytope, LazySets.Ellipsoid; backend=Clarabel.Optimizer,interior_point=[0.0; 0.0; 0.0]
+        lazypolytope, LazySets.Ellipsoid; backend = Clarabel.Optimizer, interior_point = [0.0;
+                                                                                          0.0;
+                                                                                          0.0]
     )
     L = eigvecs(LazySets.shape_matrix(john_ellipsoid))
     R = diagm(map(sqrt, eigvals(LazySets.shape_matrix(john_ellipsoid))))
@@ -144,13 +146,13 @@ Only works in dimension 3.
 `atol` is used as a bound for the minimal
 singular value to determine the kernel of `A`.
 """
-function approximate_projection(A; atol=1e-5, prec=10^4)
+function approximate_projection(A; atol = 1e-5, prec = 10^4)
     d = size(A, 1)
     if d != 3
         error("Only 3x3 matrices A are supported by approximate_projection.")
     end
     T = typeof(A[1, 1])
-    v = nullspace(A; atol=atol)[:, 1]
+    v = nullspace(A; atol = atol)[:, 1]
 
     # If A e_j = 0, then v is a multiple of e_j and
     # v_j would be in absoulte value the maximal entry of v 

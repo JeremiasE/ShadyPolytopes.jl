@@ -18,7 +18,7 @@ end
 function CSCP(V)
     normals = calculate_normals(V)
     T = typeof(normals)
-    return CSCP(T(V),normals)
+    return CSCP(T(V), normals)
 end
 
 function Base.:(*)(P::AbstractMatrix, cscp::CSCP)
@@ -34,7 +34,7 @@ the normals ``w`` such that ``w^T v <= 1``.
 If `symmetric` is true, it is enough to
 include the vertices in one halfspace.
 """
-function calculate_normals(vertices; symmetric=true)
+function calculate_normals(vertices; symmetric = true)
     if symmetric
         vertices = [vertices; map(x -> -x, vertices)]
     end
@@ -53,6 +53,6 @@ function all_vertices(cscp::CSCP)
 end
 
 cube = CSCP(
-    [[1, -1, -1],[1, 1, -1], [1, -1, 1], [1, 1, 1]],
-    [[1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1]]
+    [[1, -1, -1], [1, 1, -1], [1, -1, 1], [1, 1, 1]],
+    [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
 )

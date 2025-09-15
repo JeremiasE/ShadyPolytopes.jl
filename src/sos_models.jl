@@ -19,12 +19,12 @@ Otherwise the produced set can be used to calculate a lower bound for
 the shadiness constant.
 """
 function shadiness_via_projection_matrix(
-    cscp;
-    use_beta_bound=false,
-    use_norm_bound=true,
-    use_equations=true,
-    feasibility=true,
-    bound=101//100,
+        cscp;
+        use_beta_bound = false,
+        use_norm_bound = true,
+        use_equations = true,
+        feasibility = true,
+        bound = 101//100
 )
     @polyvar p[1:3, 1:3]
     @polyvar β
@@ -89,7 +89,8 @@ Otherwise the produced set can be used to calculate a lower bound for
 the shadiness constant.
 """
 function shadiness_via_vw(
-    cscp; feasibility=true, v_index=3, w_index=3, v_entry=1, bound=101//100, quadratic=true
+        cscp; feasibility = true, v_index = 3, w_index = 3,
+        v_entry = 1, bound = 101//100, quadratic = true
 )
     @polyvar w[1:2]
     @polyvar v[1:2]
@@ -106,15 +107,13 @@ function shadiness_via_vw(
     vv, ww = v_w_vectors(v_index, w_index, v_entry, v, w)
 
     if feasibility
-        ineq1 = [
-            bound * ww' * vv + ww' * x * h' * vv - h' * x * ww' * vv for x in vertices for
-            h in normals
-        ]
+        ineq1 = [bound * ww' * vv + ww' * x * h' * vv - h' * x * ww' * vv for x in vertices
+                 for
+                 h in normals]
     else
-        ineq1 = [
-            (1 + β) * ww' * vv + ww' * x * h' * vv - h' * x * ww' * vv for x in vertices for
-            h in normals
-        ]
+        ineq1 = [(1 + β) * ww' * vv + ww' * x * h' * vv - h' * x * ww' * vv
+                 for x in vertices for
+                 h in normals]
     end
 
     ineq2 = [ww' * vv]
@@ -156,14 +155,14 @@ proveable lower bound for `obj` over `K`. This
 is done using a weighted SOS decomposition using polynomials of maximal degree `maxdegree`.
 """
 
-function putinar_model(solver, vars, K, obj; feasibility=true, maxdegree=4)
+function putinar_model(solver, vars, K, obj; feasibility = true, maxdegree = 4)
     model = SOSModel(solver)
     if feasibility
-        @constraint(model, c, obj >= 0, domain = K, maxdegree = maxdegree)
+        @constraint(model, c, obj>=0, domain=K, maxdegree=maxdegree)
     else
         @variable(model, τ)
         @objective(model, Max, τ)
-        @constraint(model, c, obj >= τ, domain = K, maxdegree = maxdegree)
+        @constraint(model, c, obj>=τ, domain=K, maxdegree=maxdegree)
     end
     return model
 end
@@ -178,22 +177,23 @@ Otherwise determine a lower bound for the shadiness constant.
 Uses `shadiness_via_vw`, more on the other parameters there.
 """
 function solve_via_vw(
-    cscp,
-    solver;
-    feasibility=true,
-    v_index=3,
-    w_index=3,
-    v_entry=1,
-    bound=101//100,
-    maxdegree=10,
+        cscp,
+        solver;
+        feasibility = true,
+        v_index = 3,
+        w_index = 3,
+        v_entry = 1,
+        bound = 101//100,
+        maxdegree = 10
 )
-    L, K, vars = shadiness_via_vw(
+    L, K,
+    vars = shadiness_via_vw(
         cscp;
-        feasibility=feasibility,
-        bound=bound,
-        v_index=v_index,
-        w_index=w_index,
-        v_entry=v_entry,
+        feasibility = feasibility,
+        bound = bound,
+        v_index = v_index,
+        w_index = w_index,
+        v_entry = v_entry
     )
     if feasibility
         obj = -1 + 0 * vars[1]
@@ -201,7 +201,7 @@ function solve_via_vw(
         obj = vars[end]
     end
     model = putinar_model(
-        solver, vars, K, obj; feasibility=feasibility, maxdegree=maxdegree
+        solver, vars, K, obj; feasibility = feasibility, maxdegree = maxdegree
     )
     println(model)
     optimize!(model)
@@ -219,21 +219,23 @@ Otherwise determine a lower bound for the shadiness constant.
 Uses `shadiness_via_projection_matrix`, more on the other parameters there.
 """
 function solve_via_projection_matrix(
-    cscp,
-    solver;
-    feasibility=true,
-    use_beta_bound=false,
-    use_norm_bound=true,
-    bound=101//100,
-    maxdegree=10,
+        cscp,
+        solver;
+        feasibility = true,
+        use_beta_bound = false,
+        use_norm_bound = true,
+        bound = 101//100,
+        maxdegree = 10
 )
     println("[Generating model]")
-    L, K, vars, squared_variable_bound = shadiness_via_projection_matrix(
+    L, K,
+    vars,
+    squared_variable_bound = shadiness_via_projection_matrix(
         cscp;
-        feasibility=feasibility,
-        bound=bound,
-        use_norm_bound=use_norm_bound,
-        use_beta_bound=use_beta_bound,
+        feasibility = feasibility,
+        bound = bound,
+        use_norm_bound = use_norm_bound,
+        use_beta_bound = use_beta_bound
     )
 
     if feasibility
@@ -242,7 +244,7 @@ function solve_via_projection_matrix(
         obj = vars[end]
     end
     model = putinar_model(
-        solver, vars, K, obj; feasibility=feasibility, maxdegree=maxdegree
+        solver, vars, K, obj; feasibility = feasibility, maxdegree = maxdegree
     )
     println(model)
     println("[Solving model]")

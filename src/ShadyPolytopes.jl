@@ -18,7 +18,7 @@ export determine_matrix_ball_vertices
 export approximate_john_position, approximate_projection, operator_norm
 export find_single_farkas_certificate, matrix_from_projection_normal
 export generate_farkas_certificates,
-    check_single_farkas_certificate, check_farkas_certificate_file
+       check_single_farkas_certificate, check_farkas_certificate_file
 export putinar_model, solve_via_projection_matrix, solve_via_vw
 export shadiness_via_projection_matrix
 export shadiness_via_vw

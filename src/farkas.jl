@@ -70,9 +70,8 @@ function find_nonnegative_solution(A, w)
     eq = [HyperPlane(Vector{Rational{Int}}(r), w[i]) for (i, r) in enumerate(eachcol(A))]
     # HalfSpace([1, 1], 1) == x+y ≤ 1
 
-    ineq = [
-        HalfSpace(Vector{Rational{Int}}([i == j ? -1//1 : 0 for i in 1:n]), 0) for j in 1:n
-    ]
+    ineq = [HalfSpace(Vector{Rational{Int}}([i == j ? -1//1 : 0 for i in 1:n]), 0)
+            for j in 1:n]
     P = polyhedron(hrep(ineq), CDDLib.Library(:exact))
     vrep(P)
     return points(P)
@@ -95,7 +94,7 @@ end
 Generate rational certificates as in `find_single_farkas_certificate`
 by sampling the surface of the unit-cube. Output to `io`.
 """
-function generate_farkas_certificates(cscp, k=1000, α=84//83, pos=1; io=stdout)
+function generate_farkas_certificates(cscp, k = 1000, α = 84//83, pos = 1; io = stdout)
     for i in (-k):k
         for j in (-k):k
             w = add_one_at_position_k([i//k, j//k], pos)
@@ -128,8 +127,8 @@ end
 
 Verify the output of `generate_farkas_certificate`.
 """
-function check_farkas_certificate_file(cscp, file, α=84//83; silent=true)
-    csv = CSV.File(file; header=false)
+function check_farkas_certificate_file(cscp, file, α = 84//83; silent = true)
+    csv = CSV.File(file; header = false)
     V = cscp.positive_vertices
     H = cscp.normals
     n = length(V) * length(H)
