@@ -7,12 +7,12 @@ println("Using ", Threads.nthreads(), " threads")
     datapath = abspath(joinpath(@__DIR__, "..", "data"))
     k = 1400
     α = 84//83
-    
-    @Threads.threads for i in 1:3
+
+    Threads.@threads for i in 1:3
         filename = joinpath(
             datapath,
-            "farkas-certificates-opt-ico-jp-$(k)-$(numerator(α))_$(denominator(α))-$(i).csv.gz",
+            "farkas-certificates-opt-ico-jp-$(k)-$(numerator(α))_$(denominator(α))-$(i).csv.gz"
         )
-        check_farkas_certificate_file(optimal_icosahedron_john_position, filename, α; silent=false)
+        check_farkas_certificate_file(optimal_icosahedron_john_position, filename, α; silent = false)
     end
 end

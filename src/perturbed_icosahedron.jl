@@ -9,7 +9,7 @@ Calculate the perturbed isocahedron with parameters `a, b, c`
 """
 function perturbed_icosahedron(a, b, c)
     vertices = [[1, a, c], [1, b, c], [c, 1, a], [c, 1, b], [a, c, 1], [b, c, 1]]
-    return CSCB{Rational{BigInt}}(vertices, calculate_normals(vertices))
+    return CSCP{Rational{BigInt}}(vertices, calculate_normals(vertices))
 end
 
 """
@@ -20,14 +20,14 @@ among the tested ones.
 This is produced by perturbed_icosahedron(-3//5,-1//5,1//10)
 Has shadiness constant approximately 1.01271
 """
-optimal_icosahedron = CSCB{Rational{BigInt}}(
+optimal_icosahedron = CSCP{Rational{BigInt}}(
     [
         [1, -3//5, 1//10],
         [1, -1//5, 1//10],
         [1//10, 1, -3//5],
         [1//10, 1, -1//5],
         [-3//5, 1//10, 1],
-        [-1//5, 1//10, 1],
+        [-1//5, 1//10, 1]
     ],
     [
         [390//1069, -1250//1069, -710//1069],
@@ -49,8 +49,8 @@ optimal_icosahedron = CSCB{Rational{BigInt}}(
         [10//9, 10//9, 10//9],
         [20//17, 15//17, 0],
         [15//17, 0, 20//17],
-        [55//53, 0, -20//53],
-    ],
+        [55//53, 0, -20//53]
+    ]
 )
 
 """
@@ -60,14 +60,14 @@ The csbd optimal_icosahedron transformed (approximately) into
 John position, i.e. the inscribed ellipsoid of maximal volume
 is the Euclidean ball.  
 """
-optimal_icosahedron_john_position = CSCB{Rational{BigInt}}(
+optimal_icosahedron_john_position = CSCP{Rational{BigInt}}(
     [
         [11//20, 49//100, 117//100],
         [99//100, 57//100, 81//100],
         [11//20, 81//100, -51//50],
         [99//100, 9//20, -9//10],
         [11//20, -13//10, -3//20],
-        [99//100, -51//50, 9//100],
+        [99//100, -51//50, 9//100]
     ],
     [
         [350//561, -22//51, -98//153],
@@ -89,8 +89,8 @@ optimal_icosahedron_john_position = CSCB{Rational{BigInt}}(
         [15700//35277, 3064//3207, 176//9621],
         [350//561, -16//51, 106//153],
         [350//561, 38//51, -8//153],
-        [100//99, 0, 0],
-    ],
+        [100//99, 0, 0]
+    ]
 )
 
 """
@@ -98,17 +98,17 @@ optimal_icosahedron_john_position = CSCB{Rational{BigInt}}(
 
 A perturbed icosahedron with only positive or negative vertices.
 the icosahedron is the convex hull of `vertices` and `-vertices`
-This is produced by perturbed_icosahedron(2//10,5//10,3//10)
-Has shadiness constant approximately 1.01022
+This is produced by perturbed_icosahedron(2//10,5//10,3//10).
+It has shadiness constant approximately 1.01022
 """
-nice_icosahedron = CSCB(
+nice_icosahedron = CSCP(
     [
         [1//5, 3//10, 1],
         [3//10, 1, 1//5],
         [3//10, 1, 1//2],
         [1//2, 3//10, 1],
         [1, 1//5, 3//10],
-        [1, 1//2, 3//10],
+        [1, 1//2, 3//10]
     ],
     [
         [0, -60//47, 65//47],
@@ -130,6 +130,6 @@ nice_icosahedron = CSCB(
         [65//47, 0, -60//47],
         [-65//47, 0, 60//47],
         [730//777, 790//777, -1160//777],
-        [-730//777, -790//777, 1160//777],
-    ],
+        [-730//777, -790//777, 1160//777]
+    ]
 )

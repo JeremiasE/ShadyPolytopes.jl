@@ -1,18 +1,28 @@
 using CDDLib
 
 """
-    struct CSCB{T}
+    struct CSCP{T}
    
-Represents a centrally symmetric convex body.
+Represents a centrally symmetric convex polytope.
 Only half of its vertices should be stored in `positive_vertices`,
 the other ones are given by `-positive_vertices`.
-However, we store all normals.
+We store, however, all normals.
 Normals are normalized such that
 the body is given by ``\\{x | h^T x \\leq 1, h \\in normals\\}``.
 """
-struct CSCB{T}
+struct CSCP{T}
     positive_vertices::Vector{Vector{T}}
     normals::Vector{Vector{T}}
+end
+
+function CSCP(V)
+    normals = calculate_normals(V)
+    T = typeof(normals)
+    return CSCP(T(V), normals)
+end
+
+function Base.:(*)(P::AbstractMatrix, cscp::CSCP)
+    CSCP([P*v for v in cscp.positive_vertices])
 end
 
 """
@@ -24,7 +34,7 @@ the normals ``w`` such that ``w^T v <= 1``.
 If `symmetric` is true, it is enough to
 include the vertices in one halfspace.
 """
-function calculate_normals(vertices; symmetric=true)
+function calculate_normals(vertices; symmetric = true)
     if symmetric
         vertices = [vertices; map(x -> -x, vertices)]
     end
@@ -33,11 +43,16 @@ function calculate_normals(vertices; symmetric=true)
 end
 
 """
-    all_vertices(cscb)
+    all_vertices(cscp)
 
 Calculate all vertices of the centrally symmetric
-convex body cscb.
+convex body cscp.
 """
-function all_vertices(cscb::CSCB)
-    return [cscb.positive_vertices; map(x -> -x, cscb.positive_vertices)]
+function all_vertices(cscp::CSCP)
+    return [cscp.positive_vertices; map(x -> -x, cscp.positive_vertices)]
 end
+
+cube = CSCP(
+    [[1, -1, -1], [1, 1, -1], [1, -1, 1], [1, 1, 1]],
+    [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
+)

@@ -7,9 +7,9 @@ using Clarabel
 function small_projection_sos_set(feasibility=true; bound=93//100)
     vertices = [[1, 1, 0], [1, -1, 0], [0, 0, 1]]
     normals = calculate_normals(vertices; symmetric=true)
-    cscb = CSCB{Rational{BigInt}}(vertices, normals)
+    cscp = CSCP{Rational{BigInt}}(vertices, normals)
     return shadiness_via_projection_matrix(
-        cscb;
+        cscp;
         use_beta_bound=false,
         use_norm_bound=true,
         use_equations=true,
@@ -74,10 +74,3 @@ function optimize_tiny_sos_model(
     return L, K, vars, obj, model
 end
 
-function certificate_embryo_feasibility()
-    L, K, vars, model = test_embryo_feasibility_model()
-    sos, offset_ineq_sos, given_ineq_sos, given_ineq = round_sos_decomposition(
-        model, K, -1, vars
-    )
-    return print_certificate(sos, offset_ineq_sos, given_ineq_sos, given_ineq, vars)
-end

@@ -29,19 +29,20 @@ end
 Approximate a number by a rational
 with numerator `n`.
 """
-function fast_round(x, n=10^7)
+function fast_round(x, n = 10^7)
     return trunc(BigInt, x * n)//n
 end
 
 """
     round_poly(p[, n])
 
-Approximate a polynomial
-by a rational polynomial
-whose coefficients have numerator `n`
+Approximate a floating point polynomial `p` by a rational polynomial whose coefficients
+    have numerator `n`
 """
-function round_poly(p, n=10^7)
-    return mapreduce(*, +, map(x -> fast_round(x, n), coefficients(p)), monomials(p))
+function round_poly(p, n = 10^7)
+    return mapreduce(*,+,map(x -> fast_round(x, n),
+        coefficients(p)),
+           monomials(p))
 end
 
 """
@@ -50,6 +51,6 @@ end
 Approximate the polynomials in an SOS decomposition `sos`
 by rationals with numerator `n`.
 """
-function round_sos(sos, n=10^7)
+function round_sos(sos, n = 10^7)
     return SOSDecomposition([round_poly(p, n) for p in sos])
 end
