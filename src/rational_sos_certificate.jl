@@ -1,7 +1,7 @@
-using MultivariatePolynomials: MultivariatePolynomials
-using SemialgebraicSets: SemialgebraicSets
-using DynamicPolynomials: DynamicPolynomials
-using LinearAlgebra: LinearAlgebra
+using MultivariatePolynomials
+using SemialgebraicSets
+using DynamicPolynomials
+using LinearAlgebra
 
 """
     gram_to_sos(RG, monos)
@@ -24,7 +24,7 @@ which represents `obj` as a rational SOS decomposition using monomials
 in the variables `vars` up to degree `degree`. The rounding to
 rational values is done up to precision `prec`.
 """
-function round_gram_matrix(gram, obj, degree, vars; prec=10^7)
+function round_and_project_gram_matrix(gram, obj, degree, vars; prec=10^7)
     G = value_matrix(gram)
     RG = fast_round.(G, prec)
     n = size(RG, 1)
@@ -168,7 +168,8 @@ function rationally_reduce_sos_decomp(model, K, obj, vars; feasibility=true, pre
     # new_eqs' * new_eqs_poly_coeffs = eqs'*A*new_eqs_poly_coeffs
 
     println("[Rounding equality coefficients]")
-    rounded_new_eqs_poly_coeffs = [round_poly(p, prec) for p in eqs_poly_coeffs] # coeffs rel to Gröbner basis
+    rounded_new_eqs_poly_coeffs = [
+        round_poly(p, prec) for p in eqs_poly_coeffs] # coeffs rel to Gröbner basis
     rounded_eqs_poly_coeffs = [
         sum(
             A[k, i] * rounded_new_eqs_poly_coeffs[i] for
@@ -198,6 +199,35 @@ function rationally_reduce_sos_decomp(model, K, obj, vars; feasibility=true, pre
 end
 
 """
+    RationalPutniarCertificate
+
+Collects all the information to produce a rational putinar certificate
+that shows that a set is empty. 
+"""
+
+mutable struct RationalPutniarCertificate
+    # the variables
+    vars
+    # each variable x must satify x^2 ≤ squared_variable_bound
+    squared_variable_bound
+    # the equalities defining our set
+    eqs
+    # the inequalities defining our set
+    ineqs
+    # the main rational SOS part
+    sos
+    # rational SOS for the variable bounds
+    offset_sos
+    # polynomial coefficients for the equalities
+    eqs_polys
+    # the SOS for the inequalities
+    ineqs_sos
+    # a negative rational number
+    left_hand_side
+end
+
+
+"""
     round_sos_decomposition(model, K, obj, vars, squared_variable_bound, offset; prec)
 
 Turn the calculated approximate weighted SOS decomposition into
@@ -212,7 +242,7 @@ function round_sos_decomposition(
     obj,
     vars,
     squared_variable_bound,
-    offset=nothing;#big(1)//10^4;
+    offset=nothing;
     prec=big(10^3),
     combine_offset_ineqs=true,
 )
@@ -224,18 +254,19 @@ function round_sos_decomposition(
     approx_gram = gram_matrix(model[:c])
     gram_degree = maximum(map(degree, collect(approx_gram.basis)))
     comb_degree = max(ceil(Int64, remobj_degree / 2), gram_degree)
-    RG, new_monos = round_gram_matrix(approx_gram, remobj, comb_degree, vars; prec=prec)
+    RG, new_monos = round_and_project_gram_matrix(approx_gram, remobj, comb_degree, vars; prec=prec)
     println("r  = ", comb_degree)
 
     println("[Calculating offset weights.]")
-    #return new_monos,soss,ineqs,offset,vars
 
     Δ, offset_sos = offset_sum_of_monomials(
         new_monos[2:end], vars; n=squared_variable_bound
     )
+    
     if isnothing(offset)
         offset = big(1)//(2Δ)
     end
+
     for i in eachindex(vars)
         offset_sos[i].wv *= offset
     end
@@ -283,37 +314,10 @@ function round_sos_decomposition(
         remaining_ineqs_sos,
         coefficients(left_hand_side)[1],
     )
+
+    check_rational_putinar_certificate(cert)
+    
     return cert
-    # newobj = -1 - ineq_part = sos_part + offset_part 
-    # return  sos_part + offset_part + ineq_part
-end
-
-"""
-    RationalPutniarCertificate
-
-Collects all the information to produce a rational putinar certificate
-that shows that a set is empty. 
-"""
-
-mutable struct RationalPutniarCertificate
-    # the variables
-    vars
-    # each variable x must satify x^2 ≤ squared_variable_bound
-    squared_variable_bound
-    # the equalities defining our set
-    eqs
-    # the inequalities defining our set
-    ineqs
-    # the main rational SOS part
-    sos
-    # rational SOS for the variable bounds
-    offset_sos
-    # polynomial coefficients for the equalities
-    eqs_polys
-    # the SOS for the inequalities
-    ineqs_sos
-    # a negative rational number
-    left_hand_side
 end
 
 """
@@ -388,76 +392,6 @@ end
 Outputs a julia file which calculates 
 """
 function print_certificate_julia(rpc; io=stdout)
-    println(io, "using DynamicPolynomials")
-    println(io, "@polyvar p[1:3,1:3]")
-    println(
-        io,
-        "const PolyType = typeof(p[1,1]+BigInt(1)//2)"
-    )
-
-    println(io, "println(\"[Filling offset vectors]\")")
-    println(io, "offset_ineqs = Vector{PolyType}()")
-    println(io, "offset_ineqs_sos =  Vector{PolyType}()")
-
-    for i in eachindex(rpc.vars)
-        println(
-            io, "push!(offset_ineqs,", (rpc.squared_variable_bound - rpc.vars[i]^2), ")"
-        )
-        print(io, "push!(offset_ineqs_sos,")
-        show_big(io, rpc.offset_sos[i])
-        println(io, ")")
-    end
-
-    println(io, "println(\"[Filling equation vectors]\")")
-    println(io, "eqs = Vector{PolyType}()")
-    println(io, "eqs_polys =  Vector{PolyType}()")
-    for i in eachindex(rpc.eqs)
-        print(io, "push!(eqs,")
-        show_big(io, rpc.eqs[i])
-        println(io, ")")
-        print(io, "push!(eqs_polys,")
-        show_big(io, rpc.eqs_polys[i])
-        println(io, ")")
-    end
-
-    println(io, "println(\"[Filling inequalitiy vectors]\")")
-    println(io, "ineqs = Vector{PolyType}()")
-    println(io, "ineqs_sos =  Vector{PolyType}()")
-    for i in eachindex(rpc.ineqs)
-        print(io, "push!(ineqs,")
-        show_big(io, rpc.ineqs[i])
-        println(io, ")")
-        print(io, "push!(ineqs_sos,")
-        show_big(io, rpc.ineqs_sos[i])
-        println(io, ")")
-    end
-
-    println(io, "println(\"[Calculating sos_part]\")")
-    print(io, "sos_part = ")
-    show_big(io, rpc.sos)
-    println(io, "")
-
-    println(io, "println(\"[Calculating offset_part]\")")
-    println(
-        io,
-        "offset_part = sum(offset_ineqs[i]*offset_ineqs_sos[i] for i in eachindex(offset_ineqs))",
-    )
-
-    println(io, "println(\"[Calculating eqs_part]\")")
-    println(io, "eqs_part = sum(eqs[i]*eqs_polys[i] for i in eachindex(eqs))")
-
-    println(io, "println(\"[Calculating ineqs_part]\")")
-    println(io, "ineqs_part = sum(ineqs[i]*ineqs_sos[i] for i in eachindex(ineqs))")
-
-    println(io, "println(sos_part+offset_part+eqs_part+ineqs_part)")
-end
-
-"""
-    print_certificate_julia(rpc; io)
-
-Outputs a julia file which calculates 
-"""
-function print_certificate_julia_minimal(rpc; io=stdout)
     println(io, "using DynamicPolynomials")
     println(io, "@polyvar p[1:3,1:3]")
     println(

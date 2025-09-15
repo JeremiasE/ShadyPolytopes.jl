@@ -36,12 +36,13 @@ end
 """
     round_poly(p[, n])
 
-Approximate a polynomial
-by a rational polynomial
-whose coefficients have numerator `n`
+Approximate a floating point polynomial `p` by a rational polynomial whose coefficients
+    have numerator `n`
 """
 function round_poly(p, n=10^7)
-    return mapreduce(*, +, map(x -> fast_round(x, n), coefficients(p)), monomials(p))
+    return mapreduce(*, +, map(x -> fast_round(x, n),
+                     coefficients(p)),
+                     monomials(p))
 end
 
 """

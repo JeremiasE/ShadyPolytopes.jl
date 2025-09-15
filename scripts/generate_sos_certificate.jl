@@ -14,6 +14,6 @@ using ShadyPolytopes
     filename = joinpath(datapath, "sos_certificate.jl")
     
     open(filename, "w") do f
-        ShadyPolytopes.print_certificate_julia_minimal(rpc; io=f)
+        ShadyPolytopes.print_certificate_julia(rpc; io=f)
     end
 end

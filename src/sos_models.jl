@@ -1,8 +1,8 @@
 """
-    shadiness_via_projection_matrix(cscb, add_beta_bound, feasibility)
+    shadiness_via_projection_matrix(cscp, add_beta_bound, feasibility)
 
 Produces a semialgebraic set which allows to determine
-the shadiness constant of `cscb` via straightforward
+the shadiness constant of `cscp` via straightforward
 representation of the projection as a matrix.
 
 If `beta_bound` is true, we add the (redundant)
@@ -19,7 +19,7 @@ Otherwise the produced set can be used to calculate a lower bound for
 the shadiness constant.
 """
 function shadiness_via_projection_matrix(
-    cscb;
+    cscp;
     use_beta_bound=false,
     use_norm_bound=true,
     use_equations=true,
@@ -28,8 +28,8 @@ function shadiness_via_projection_matrix(
 )
     @polyvar p[1:3, 1:3]
     @polyvar β
-    vertices = cscb.positive_vertices
-    normals = cscb.normals
+    vertices = cscp.positive_vertices
+    normals = cscp.normals
 
     if feasibility
         vars = reshape(p, 9)[1:(end - 1)]
@@ -50,9 +50,9 @@ function shadiness_via_projection_matrix(
     end
     eq = reshape(p * p - p, 9)
 
-    squared_variable_bound = determine_squared_spectralnorm_bound(cscb)
+    squared_variable_bound = determine_squared_spectralnorm_bound(cscp)
     # Pe_i ∈ PB_2 ⊆ ||P||_2 B_2 ⊆ ||P||_2 B_∞
-    # ⟹ |P|_ij ≤ ||P||_2 ≤ √γ ||P||_cscb ≤ bound √γ
+    # ⟹ |P|_ij ≤ ||P||_2 ≤ √γ ||P||_cscp ≤ bound √γ
     # ⟹ |P|_ij^2 ≤ bound^2 γ  
     if use_norm_bound
         ineq = [[bound^2 * squared_variable_bound - m^2 for m in vars[1:8]]; ineq]
@@ -69,11 +69,11 @@ function shadiness_via_projection_matrix(
 end
 
 """
-    shadiness_via_vw(cscb;feasibility, v_index, w_index, v_entry=1,
+    shadiness_via_vw(cscp;feasibility, v_index, w_index, v_entry=1,
                           bound, quadratic)
 
 Produces a semialgebraic set which allows to determine
-the shadiness constant of `cscb` via the
+the shadiness constant of `cscp` via the
 representation of a rank d-1 projection by a normal to the image
 and a vector spanning the kernel.
 
@@ -89,13 +89,13 @@ Otherwise the produced set can be used to calculate a lower bound for
 the shadiness constant.
 """
 function shadiness_via_vw(
-    cscb; feasibility=true, v_index=3, w_index=3, v_entry=1, bound=101//100, quadratic=true
+    cscp; feasibility=true, v_index=3, w_index=3, v_entry=1, bound=101//100, quadratic=true
 )
     @polyvar w[1:2]
     @polyvar v[1:2]
     @polyvar β
-    vertices = cscb.positive_vertices
-    normals = cscb.normals
+    vertices = cscp.positive_vertices
+    normals = cscp.normals
 
     if feasibility
         vars = [w; v]
@@ -152,9 +152,8 @@ end
 Returns a JuMP Model which can be used to show that the function `obj`
 using the variables `vars` is non-negative over the basic
 semialgebraic set `K` if `feasibility` is true and otherwise find a
-proveable lower bound for `obj` over `K`.  This is done using
-Putinar's Positivstellensatz using polynomials and
-a SOS decomposition using polynomials of maximal degree `maxdegree`.
+proveable lower bound for `obj` over `K`. This
+is done using a weighted SOS decomposition using polynomials of maximal degree `maxdegree`.
 """
 
 function putinar_model(solver, vars, K, obj; feasibility=true, maxdegree=4)
@@ -170,16 +169,16 @@ function putinar_model(solver, vars, K, obj; feasibility=true, maxdegree=4)
 end
 
 """
-    solve_via_vw(cscb, solver; feasibility=true, bound=101//100, maxdegree=10)
+    solve_via_vw(cscp, solver; feasibility=true, bound=101//100, maxdegree=10)
 
 If `feasibility` is true, calculate a SOS decomposition
-that certifies that the shadiness constant of `cscb` is at least `bound`.
+that certifies that the shadiness constant of `cscp` is at least `bound`.
 Otherwise determine a lower bound for the shadiness constant.
 
 Uses `shadiness_via_vw`, more on the other parameters there.
 """
 function solve_via_vw(
-    cscb,
+    cscp,
     solver;
     feasibility=true,
     v_index=3,
@@ -189,7 +188,7 @@ function solve_via_vw(
     maxdegree=10,
 )
     L, K, vars = shadiness_via_vw(
-        cscb;
+        cscp;
         feasibility=feasibility,
         bound=bound,
         v_index=v_index,
@@ -211,16 +210,16 @@ function solve_via_vw(
 end
 
 """
-    solve_via_projection_matrix(cscb, solver; feasibility=true, bound=101//100, maxdegree=10)
+    solve_via_projection_matrix(cscp, solver; feasibility=true, bound=101//100, maxdegree=10)
 
 If `feasibility` is true, calculate a SOS decomposition
-that certifies that the shadiness constant of `cscb` is at least `bound`.
+that certifies that the shadiness constant of `cscp` is at least `bound`.
 Otherwise determine a lower bound for the shadiness constant.
 
 Uses `shadiness_via_projection_matrix`, more on the other parameters there.
 """
 function solve_via_projection_matrix(
-    cscb,
+    cscp,
     solver;
     feasibility=true,
     use_beta_bound=false,
@@ -230,7 +229,7 @@ function solve_via_projection_matrix(
 )
     println("[Generating model]")
     L, K, vars, squared_variable_bound = shadiness_via_projection_matrix(
-        cscb;
+        cscp;
         feasibility=feasibility,
         bound=bound,
         use_norm_bound=use_norm_bound,
@@ -255,7 +254,7 @@ end
 """
     check_putinar_certificate(model,K)
 
-Calculates the weighted sos decomposition calculated in `model`, this
+Calculates the weighted SOS decomposition calculated in `model`, this
 should approximately equal the objective function used in the model
 minus a lower bound.
     """
