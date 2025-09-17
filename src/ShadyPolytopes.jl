@@ -2,7 +2,7 @@ module ShadyPolytopes
 
 include("cscp.jl")
 include("rounding.jl")
-include("analyse_ball.jl")
+include("analyze_ball.jl")
 include("perturbed_icosahedron.jl")
 include("farkas.jl")
 include("sos_models.jl")
