@@ -13,6 +13,6 @@ println("Using ", Threads.nthreads(), " threads")
             datapath,
             "farkas-certificates-opt-ico-jp-$(k)-$(numerator(α))_$(denominator(α))-$(i).csv.gz"
         )
-        check_farkas_certificate_file(optimal_icosahedron_john_position, filename, α; silent = false)
+        check_farkas_certificate_file(optimal_icosahedron_john_position, filename, α; silent = (i==1))
     end
 end
