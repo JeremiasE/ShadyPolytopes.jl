@@ -177,7 +177,7 @@ function rationally_reduce_sos_decomp(model, K, obj, vars; feasibility = true, p
 
     rounded_eqs_part = sum(rounded_eqs_poly_coeffs[i] * eqs[i] for i in eqs_indices)
 
-    println("[Rounding ineqality coefficients]")
+    println("[Rounding inequality coefficients]")
     rounded_ineqs_sos_decomp = [round_sos(SOSDecomposition(lang_mul[i]), prec)
                                 for i in ineqs_indices]
     rounded_ineqs_part = sum(rounded_ineqs_sos_decomp[i] * ineqs[i] for i in ineqs_indices)
@@ -243,7 +243,7 @@ function round_sos_decomposition(
     r = rationally_reduce_sos_decomp(model, K, obj, vars; prec = prec, feasibility = true)
     remobj, ineqs_sos, eqs_poly_coeffs, ineqs_part, eqs_part = r
 
-    println("[Projecting Gram matrix.]")
+    println("[Projecting Gram matrix]")
     remobj_degree = maximum(map(degree, terms(remobj)))
     approx_gram = gram_matrix(model[:c])
     gram_degree = maximum(map(degree, collect(approx_gram.basis)))
@@ -271,7 +271,7 @@ function round_sos_decomposition(
     println("1/(2Δ) = ", big(1)//(2Δ))
     println("smallest Gram matrix eigenvalue: ", minimum(map(abs, eigvals(RG))))
 
-    println("[Converting Gram matrix to SOS.]")
+    println("[Converting Gram matrix to SOS]")
     # nm' RG nm = remobj = rounded_sos - offset *new_monos'*new_monos
     rounded_sos = gram_to_sos(RG + offset * I, new_monos)
     rounded_sos_part = polynomial(rounded_sos)
@@ -280,7 +280,7 @@ function round_sos_decomposition(
         error("Offset is to small, rounded Gram matrix + offset is not pd.")
     end
 
-    println("[Combings offset weights with inequality weights.]")
+    println("[Combings offset weights with inequality weights]")
     #offsetpart = Δ-newmonos'*newmonos
     offset_part = (sum(
         (squared_variable_bound - t^2) * polynomial(p) for (p, t) in zip(offset_sos, vars)
@@ -329,20 +329,20 @@ function check_rational_putinar_certificate(rpc)
     else
         println("Left hand side not negativ 🥲")
     end
-    println("Computing main sum-of-square part")
+    println("[Computing main sum-of-square part]")
     sos_part = polynomial(rpc.sos)
 
-    println("Computing offset part")
+    println("[Computing offset part]")
     offset_part = sum(
         (rpc.squared_variable_bound - t^2) * polynomial(p)
     for
     (t, p) in zip(rpc.vars, rpc.offset_sos)
     )
 
-    println("Computing equations part")
+    println("[Computing equations part]")
     eqs_part = sum(q * p for (q, p) in zip(rpc.eqs, rpc.eqs_polys))
 
-    println("Computing inequalities part")
+    println("[Computing inequalities part]")
     ineqs_part = sum(q * polynomial(p) for (q, p) in zip(rpc.ineqs, rpc.ineqs_sos))
 
     right_hand_side = sos_part + offset_part + eqs_part + ineqs_part
