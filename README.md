@@ -88,6 +88,6 @@ julia --threads 3 scripts/verify_farkas_certificate_john_position.jl
   * `data/` contains the certificates themselves
   * `notebooks/` contains two Jupyter notebooks in which various
     quantities of the polytope used in the proof are calculated, as well as html exports of them,
-    see https://rawcdn.githack.com/JeremiasE/ShadyPolytopes.jl/a1bdd6780ab7c52d5986bd088ca8cba7b7020f7d/notebooks/Analyze_perturbed_icosahedron.html
-    and https://rawcdn.githack.com/JeremiasE/ShadyPolytopes.jl/a1bdd6780ab7c52d5986bd088ca8cba7b7020f7d/notebooks/Simple_shadiness_test.html
+    see [Analyze_perturbed_icosahedron.html](https://rawcdn.githack.com/JeremiasE/ShadyPolytopes.jl/a1bdd6780ab7c52d5986bd088ca8cba7b7020f7d/notebooks/Analyze_perturbed_icosahedron.html)
+    and [Simple_shadiness_test](https://rawcdn.githack.com/JeremiasE/ShadyPolytopes.jl/a1bdd6780ab7c52d5986bd088ca8cba7b7020f7d/notebooks/Simple_shadiness_test.html).
 
