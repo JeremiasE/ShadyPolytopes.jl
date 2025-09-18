@@ -18,7 +18,6 @@ This package can be downloaded by calling
 git clone https://github.com/JeremiasE/ShadyPolytopes.jl
 ```
 
-
 Assuming that Julia is installed (see https://julialang.org/install/), the package can be installed by calling (on the Julia REPL):
 
 ``` julia
@@ -26,7 +25,11 @@ Assuming that Julia is installed (see https://julialang.org/install/), the packa
 ] dev ./ShadyPolytopes.jl
 ```
 
-Optionally one can run the tests by 
+Optionally one can run the tests by calling
+``` julia
+] activate ShadyPolytopes.jl
+] test
+```
 
 # Usage
 
@@ -84,5 +87,7 @@ julia --threads 3 scripts/verify_farkas_certificate_john_position.jl
   * `test/` tests for the code in `src/`
   * `data/` contains the certificates themselves
   * `notebooks/` contains two Jupyter notebooks in which various
-    quantities of the polytope used in the proof are calculated, as well as html exports of them
+    quantities of the polytope used in the proof are calculated, as well as html exports of them,
+    see https://rawcdn.githack.com/JeremiasE/ShadyPolytopes.jl/a1bdd6780ab7c52d5986bd088ca8cba7b7020f7d/notebooks/Analyze_perturbed_icosahedron.html
+    and https://rawcdn.githack.com/JeremiasE/ShadyPolytopes.jl/a1bdd6780ab7c52d5986bd088ca8cba7b7020f7d/notebooks/Simple_shadiness_test.html
 
