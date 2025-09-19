@@ -4,7 +4,7 @@
 
 # Introduction
 
-This repository contains the code accompanying the paper ...
+This repository contains the code accompanying the paper [Lower Bounds for the Shadiness Constant of Finite-Dimensional Normed Spaces](https://arxiv.org/abs/2509.14819)
 which gives a computer assisted proof that a certain
 centrally symmetric convex polytope has a shadiness constant of at least 1.01,
 i.e. with respect to the norm defined by this polytope every rank-2 projection has operator norm
